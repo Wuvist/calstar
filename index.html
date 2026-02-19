@@ -8,7 +8,7 @@
     <script src="lunar.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: "Noto Serif SC", "Source Han Serif SC", "Source Han Serif CN", "Songti SC", "STSong", "SimSun", serif; background-color: #F5F5DC; color: #2C3E50; -webkit-tap-highlight-color: transparent; }
+        body { font-family: "Noto Serif SC", "Source Han Serif SC", "Source Han Serif CN", "Songti SC", "STSong", "SimSun", serif; background-color: #F5F5DC; color: #2C3E50; -webkit-tap-highlight-color: transparent; font-size: 13px; }
         .chinese-border { border: 1px solid #8B4513; position: relative; }
         .chinese-border::after { content: ''; position: absolute; top: 1px; left: 1px; right: 1px; bottom: 1px; border: 1px solid #8B4513; pointer-events: none; }
         .palace-cell { transition: all 0.3s ease; min-width: 0; }
@@ -25,29 +25,29 @@
         }
 
         /* 响应式显示控制 */
-        .tab-content { display: none; }
-        .tab-content.active-grid { display: grid; }
-        .tab-content.active-flex { display: flex; }
-
         @media (max-width: 768px) {
+            .tab-content { display: none !important; }
+            .tab-content.active-grid { display: grid !important; }
+            .tab-content.active-flex { display: flex !important; }
+            
             .palace-cell { aspect-ratio: 1 / 1.1; padding: 2px !important; }
             .palace-cell span.text-lg { font-size: 1rem !important; }
             .center-info { padding: 4px !important; }
-            #baziDisplay span.text-xl { font-size: 1.125rem !important; }
+            #basicInfo, #baziDisplay { transform: scale(0.9); transform-origin: center top; width: 100%; }
+            #baziDisplay span.text-xl { font-size: 1rem !important; }
             #baziDisplay .text-[9px], #baziDisplay .text-[8px] { font-size: 7px !important; transform: scale(0.9); }
             #shichenInfo { font-size: 8px !important; line-height: 1; }
             .sc-btn { padding: 2px 4px !important; font-size: 8px !important; }
         }
     </style>
 </head>
-<body class="p-1 md:p-4 md:h-screen md:overflow-hidden flex flex-col">
+<body class="p-1 md:p-4 h-screen overflow-hidden flex flex-col">
     <div class="max-w-6xl mx-auto flex-grow flex flex-col w-full h-full min-h-0">
-        <header class="text-center mb-1 md:mb-2">
+        <header class="text-center mb-1 shrink-0">
             <h1 class="text-lg md:text-2xl font-bold text-yellow-900">问天星算</h1>
         </header>
 
-        <!-- 输入模块 -->
-        <section class="bg-white bg-opacity-50 p-2 rounded shadow-sm border border-yellow-200 mb-2 shrink-0">
+        <section class="bg-white bg-opacity-50 p-2 rounded shadow-sm border border-yellow-200 mb-1 md:mb-4 shrink-0">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-2 items-end">
                 <div class="col-span-1">
                     <div class="flex justify-between items-center mb-0.5">
@@ -103,13 +103,11 @@
             </div>
         </section>
 
-        <!-- 移动端 Tab -->
         <div class="flex md:hidden border-b border-yellow-200 mb-2 shrink-0">
             <button onclick="switchTab('chart')" id="tabBtn-chart" class="flex-1 py-2 text-xs font-bold border-b-2 border-yellow-900 text-yellow-900">命盘网格</button>
             <button onclick="switchTab('report')" id="tabBtn-report" class="flex-1 py-2 text-xs font-bold border-b-2 border-transparent text-gray-400">文字报告</button>
         </div>
 
-        <!-- 主体 -->
         <div class="flex flex-col md:flex-row gap-2 md:gap-4 flex-grow overflow-hidden min-h-0">
             <div id="tab-chart" class="tab-content active-grid flex-grow grid grid-cols-4 grid-rows-4 gap-1 md:gap-2 h-full">
                 <div id="pos-5" class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30"></div>
@@ -119,7 +117,6 @@
                 <div id="pos-4" class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30"></div>
                 <div class="col-span-2 row-span-2 bg-white bg-opacity-80 chinese-border p-1 md:p-2 center-info flex flex-col items-center justify-center text-center overflow-hidden">
                     <div id="basicInfo" class="space-y-0.5 w-full"></div>
-                    <div id="shichenInfo" class="text-[8px] md:text-[10px] text-red-800 opacity-70 mt-0.5 mb-0.5 font-mono"></div>
                     <div id="baziDisplay" class="mt-1 flex space-x-0.5 md:space-x-2 border-t border-yellow-100 pt-1 w-full justify-around min-h-[45px] md:min-h-[60px]"></div>
                 </div>
                 <div id="pos-9" class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30"></div>
@@ -131,12 +128,12 @@
                 <div id="pos-11" class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30"></div>
             </div>
 
-            <div id="tab-report" class="tab-content md:active-flex w-full md:w-80 flex-col shrink-0 border-l-0 md:border-l border-yellow-200 md:pl-4 h-full hidden overflow-hidden">
-                <div class="flex justify-between items-center mb-1">
+            <div id="tab-report" class="tab-content md:flex w-full md:w-80 flex-col shrink-0 border-l-0 md:border-l border-yellow-200 md:pl-4 h-full overflow-hidden">
+                <div class="flex justify-between items-center mb-1 shrink-0">
                     <label class="text-[10px] font-bold text-yellow-900">Markdown 报告</label>
                     <button onclick="copyMd()" id="copyBtn" class="bg-yellow-100 text-yellow-900 px-2 py-0.5 rounded text-[10px]">复制</button>
                 </div>
-                <textarea id="mdOutput" readonly class="flex-grow bg-white bg-opacity-50 border border-yellow-200 rounded p-2 text-[10px] font-mono focus:outline-none resize-none leading-relaxed overflow-y-auto"></textarea>
+                <textarea id="mdOutput" readonly class="flex-grow bg-white bg-opacity-50 border border-yellow-200 rounded p-2 text-[10px] font-mono focus:outline-none resize-none leading-relaxed overflow-y-auto w-full mb-1"></textarea>
             </div>
         </div>
     </div>
@@ -146,8 +143,8 @@
         const BRANCHES = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
         const ZODIAC_SIGNS = ["白羊", "金牛", "双子", "巨蟹", "狮子", "处女", "天秤", "天蝎", "射手", "摩羯", "水瓶", "双鱼"];
         const LUNAR_MONTHS = ["正月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "冬月", "腊月"];
-        const LUNAR_DAYS = ["初一", "初二", "初三", "初四", "初五", "初六", "初七", "初八", "初九", "初十", "十一", "十二", "十三", "十四", "十五", "十六", "十七", "十八", "十九", "二十", "廿一", "廿2", "廿三", "廿四", "廿五", "廿六", "廿七", "廿八", "廿九", "三十"];
-        const TERM_DICT = { '比肩': '同我者为比肩。\n\n代表竞争、朋友、独立性。', '劫财': '同我而异性者为劫财。\n\n代表破财、竞争、感情用事。', '食神': '我生者为食神。\n\n代表福气、口才、才华、温和。', '伤官': '我生而异性者为伤官。\n\n代表才华、叛逆、变动、傲气。', '正财': '我克者为正财。\n\n代表薪资、现实、稳重、占有欲。', '偏财': '我克而异性者为偏财。\n\n代表横财、慷慨、投机、多情。', '正官': '克我者为正官。\n\n代表地位、名誉、纪律、自我约束。', '七杀': '克我而异性者为七杀。\n\n代表权力、压力、勇气、竞争。', '偏印': '生我者为偏印。\n\n代表直觉、艺术、孤僻、领悟力。', '正印': '生我而异性者为正印。\n\n代表学识、慈悲、保护、名誉。', '日主': '出生日的天干，代表命主本人。', '海中金': '深藏不露。\n\n代表含蓄深沉。', '炉中火': '热烈旺盛。\n\n代表热情果断。', '大林木': '枝繁叶茂。\n\n代表仁慈正直。', '路旁土': '踏实平稳。\n\n代表稳重厚道。', '剑锋金': '锐利决断。\n\n代表刚强锐气。', '山头火': '火势极高。\n\n代表威严急躁。', '涧下水': '清澈细流。\n\n代表柔和耐心。', '城头土': '守卫之土。\n\n代表忠诚保守。', '白蜡金': '纯洁易塑。\n\n代表柔弱灵性。', '杨柳木': '柔顺多变。\n\n代表灵活适应。', '泉中水': '源头活水。\n\n代表睿智温和。', '屋上土': '遮风挡雨。\n\n代表责任孤独。', '霹雳火': '爆发威猛。\n\n代表正直爆发。', '松柏木': '坚韧不拔。\n\n代表长寿孤高。', '长流水': '滔滔不绝。\n\n代表远见奔波。', '沙中金': '去伪存真。\n\n代表坚韧细致。', '山下火': '渐趋平缓。\n\n代表谦虚内敛。', '平地木': '根基深厚。\n\n代表朴实担当。', '壁上土': '依附依靠。\n\n代表忠厚规矩。', '金箔金': '华而不实。\n\n代表细腻艺术。', '佛灯火': '照亮黑暗。\n\n代表仁慈孤独。', '天河水': '滋润万物。\n\n代表博大恩泽。', '大驿土': '坦荡宽阔。\n\n代表胸怀诚信。', '钗钏金': '精巧华丽。\n\n代表高贵细腻。', '桑柘木': '奉献勤劳。\n\n代表柔顺奉献。', '大溪水': '奔腾不息。\n\n代表活力雄心。', '沙中土': '松散多变。\n\n代表随和宽容。', '天上火': '光明磊落。\n\n代表博大公正。', '石榴木': '多才多艺。\n\n代表多才性格。', '大海水': '浩瀚无垠。\n\n代表宽广包容。' };
+        const LUNAR_DAYS = ["初一", "初二", "初三", "初四", "初五", "初六", "初七", "初八", "初九", "初十", "十一", "十二", "十三", "十四", "十五", "十六", "十七", "十八", "十九", "二十", "廿一", "廿二", "廿三", "廿四", "廿五", "廿六", "廿七", "廿八", "廿九", "三十"];
+        const TERM_DICT = { '比肩': '同我者为比肩。\n\n代表竞争、朋友、独立性。', '劫财': '同我而异性者为劫财。\n\n代表破财、竞争、感情用事。', '食神': '我生者为食神。\n\n代表福气、口才、才华、温和。', '伤官': '我生而异性者为伤官。\n\n代表才华、叛逆、变动、傲气。', '正财': '我克者为正财。\n\n代表薪资、现实、稳重、占有欲。', '偏财': '我克而异性者为偏财。\n\n代表横财、慷慨、投机、多情。', '正官': '克我者为正官。\n\n代表地位、名誉、纪律、自我约束。', '七杀': '克我而异性者为七杀。\n\n代表权力、压力、勇气、竞争。', '偏印': '生我者为偏印。\n\n代表直觉、艺术、孤僻、领悟力。', '正印': '生我而异性者为正印。\n\n代表学识、慈悲、保护、名誉。', '日主': '出生日的天干，代表命主本人。', '海中金': '深藏不露。\n\n代表含蓄深沉。', '炉中火': '热烈旺盛。\n\n代表热情果断。', '大林木': '枝繁叶茂。\n\n代表仁慈正直。', '路旁土': '踏实平稳。\n\n代表稳重厚道。', '剑锋金': '锐利决断。\n\n代表刚强锐气。', '山头火': '火势极高。\n\n代表威严急躁。', '涧下水': '清澈细流。\n\n代表柔和耐心。', '城头土': '守卫之土。\n\n代表忠诚保守。', '白蜡金': '纯洁易塑。\n\n代表柔弱灵性。', '杨柳木': '随风摇曳。\n\n代表灵活适应。', '泉中水': '源头活水。\n\n代表睿智温和。', '屋上土': '遮风挡雨。\n\n代表责任孤独。', '霹雳火': '爆发威猛。\n\n代表正直爆发。', '松柏木': '坚韧不拔。\n\n代表长寿孤高。', '长流水': '滔滔不绝。\n\n代表远见奔波。', '沙中金': '去伪存真。\n\n代表坚韧细致。', '山下火': '渐趋平缓。\n\n代表谦虚内敛。', '平地木': '平原之木。\n\n代表朴实担当。', '壁上土': '依附依靠。\n\n代表忠厚规矩。', '金箔金': '华而不实。\n\n代表细腻艺术。', '佛灯火': '照亮黑暗。\n\n代表仁慈孤独。', '天河水': '滋润万物。\n\n代表博大恩泽。', '大驿土': '坦荡宽阔。\n\n代表胸怀诚信。', '钗钏金': '精巧华丽。\n\n代表高贵细腻。', '桑柘木': '奉献勤劳。\n\n代表柔顺奉献。', '大溪水': '奔腾不息。\n\n代表活力雄心。', '沙中土': '松散多变。\n\n代表随和宽容。', '天上火': '光明磊落。\n\n代表博大公正。', '石榴木': '多才多艺。\n\n代表多才性格。', '大海水': '浩瀚无垠。\n\n代表宽广包容。' };
 
         const CITY_DATA = { "北京市": {"北京市": [116.40, 39.90]}, "上海市": {"上海市": [121.47, 31.23]}, "天津市": {"天津市": [117.20, 39.12]}, "重庆市": {"重庆市": [106.50, 29.53]}, "广东省": {"广州市": [113.23, 23.16], "深圳市": [114.07, 22.62], "珠海市": [113.52, 22.30], "东莞市": [113.75, 23.04], "中山市": [113.38, 22.52]}, "浙江省": {"杭州市": [120.19, 30.26], "宁波市": [121.56, 29.86], "温州市": [120.67, 28.00]}, "江苏省": {"南京市": [118.78, 32.04], "苏州市": [120.62, 31.32], "无锡市": [120.29, 31.59]}, "四川省": {"成都市": [104.06, 30.67]}, "吉林省": {"通化市": [125.93, 41.73]} };
 
@@ -178,7 +175,9 @@
         }
 
         function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active-grid', 'active-flex'));
+            document.querySelectorAll('.tab-content').forEach(c => {
+                c.classList.remove('active-grid', 'active-flex');
+            });
             const target = document.getElementById('tab-' + tabId);
             if (tabId === 'chart') target.classList.add('active-grid');
             else target.classList.add('active-flex');
@@ -248,7 +247,6 @@
         };
 
         function getWuXingClass(char) { return `color-${WUXING[char] || 'metal'}`; }
-
         function renderPillar(title, gan, zhi, hide, ssGan, ssZhi, nayin, isDM = false) {
             const tipGan = TERM_DICT[ssGan] || ''; const tipZhi = TERM_DICT[ssZhi] || ''; const tipNaYin = TERM_DICT[nayin] || '';
             return `<div class="flex flex-col items-center ${isDM ? 'pillar-highlight' : ''}">
@@ -294,15 +292,7 @@
                     document.querySelectorAll('.sc-btn').forEach(btn => btn.innerText.startsWith(baZi.getTimeZhi()) ? btn.classList.add('bg-yellow-700', 'text-white') : btn.classList.remove('bg-yellow-700', 'text-white'));
                 } else { document.getElementById('shichenInfo').innerText = "出生时辰不详"; }
 
-                document.getElementById('basicInfo').innerHTML = `
-                    <div class="text-[12px] md:text-[13px] font-bold">${cSol.toYmd()} ${unk ? '' : String(cSol.getHour()).padStart(2, '0')+':'+String(cSol.getMinute()).padStart(2, '0')}</div>
-                    <div class="text-[10px] md:text-[11px] text-yellow-900">${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()} ${unk ? '' : '('+baZi.getTimeZhi()+'时)'}</div>
-                    <div class="flex flex-wrap justify-center gap-x-1 text-[8px] md:text-[9px] mt-0.5 opacity-80">
-                        <span>${lunar.getYearShengXiao()}</span>
-                        <span class="cursor-help" data-tip="太阳星座：主基本性格。">${cSol.getXingZuo()}座</span>
-                        <span class="text-red-800 font-bold cursor-help" data-tip="上升星座：主外在印象。">(${asc})</span>
-                    </div>`;
-                
+                document.getElementById('basicInfo').innerHTML = `<div class="text-[12px] md:text-[13px] font-bold">${cSol.toYmd()} ${unk ? '' : String(cSol.getHour()).padStart(2, '0')+':'+String(cSol.getMinute()).padStart(2, '0')}</div><div class="text-[10px] md:text-[11px] text-yellow-900">${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()} ${unk ? '' : '('+baZi.getTimeZhi()+'时)'}</div><div class="flex flex-wrap justify-center gap-x-1 text-[8px] md:text-[9px] mt-0.5 opacity-80"><span>${lunar.getYearShengXiao()}</span><span class="cursor-help" data-tip="太阳星座：代表一个人的基本性格。">${cSol.getXingZuo()}座</span><span class="text-red-800 font-bold cursor-help" data-tip="上升星座：代表给人的第一印象。">(${asc})</span></div>`;
                 document.getElementById('baziDisplay').innerHTML = `${renderPillar('年', baZi.getYearGan(), baZi.getYearZhi(), baZi.getYearHideGan().join(''), baZi.getYearShiShenGan(), baZi.getYearShiShenZhi()[0], lunar.getYearNaYin())}${renderPillar('月', baZi.getMonthGan(), baZi.getMonthZhi(), baZi.getMonthHideGan().join(''), baZi.getMonthShiShenGan(), baZi.getMonthShiShenZhi()[0], lunar.getMonthNaYin())}${renderPillar('日', baZi.getDayGan(), baZi.getDayZhi(), baZi.getDayHideGan().join(''), '日主', baZi.getDayShiShenZhi()[0], lunar.getDayNaYin(), true)}${unk ? '<div class="flex flex-col items-center opacity-20"><span class="text-[9px] text-yellow-800">时</span><span class="text-xl font-bold text-gray-300">?</span></div>' : renderPillar('时', baZi.getTimeGan(), baZi.getTimeZhi(), baZi.getTimeHideGan().join(''), baZi.getTimeShiShenGan(), baZi.getTimeShiShenZhi()[0], lunar.getTimeNaYin())}`;
 
                 BRANCHES.forEach((branch, index) => {

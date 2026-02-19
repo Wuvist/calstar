@@ -44,7 +44,7 @@
 ## 🛠️ 技术栈
 
 - **样式**: Tailwind CSS (Local v2.2.19)
-- **算法**: [lunar-javascript](https://github.com/6678/lunar-javascript)
+- **算法**: [lunar-javascript](https://github.com/6tail/lunar-javascript)
 - **字体**: Noto Serif SC (思源宋体)
 - **架构**: 原生 Vanilla JS，零框架依赖。
 

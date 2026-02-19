@@ -8,13 +8,23 @@
     <script src="lunar.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Noto Serif SC', serif; background-color: #F5F5DC; color: #2C3E50; }
+        body { font-family: "Noto Serif SC", "Source Han Serif SC", "Source Han Serif CN", "Songti SC", "STSong", "SimSun", serif; background-color: #F5F5DC; color: #2C3E50; }
         .chinese-border { border: 1px solid #8B4513; position: relative; }
         .chinese-border::after { content: ''; position: absolute; top: 1px; left: 1px; right: 1px; bottom: 1px; border: 1px solid #8B4513; pointer-events: none; }
         .palace-cell { min-height: 70px; transition: all 0.3s ease; }
         .palace-cell:hover { background-color: #E9E9D0; }
         .color-wood { color: #2D5A27; } .color-fire { color: #C04851; } .color-earth { color: #8B7042; } .color-metal { color: #9D9087; } .color-water { color: #1A1A1A; }
         .pillar-highlight { border-bottom: 2px solid #C04851; }
+        
+        /* Tooltip 基础样式：通过绝对定位和 Z-INDEX 确保不透明 */
+        [data-tip] { position: relative; cursor: help; }
+        [data-tip]:hover::after {
+            content: attr(data-tip); position: absolute; bottom: 125%; left: 50%; transform: translateX(-50%);
+            padding: 6px 10px; background-color: #FFFDE7 !important; color: #5D4037 !important; font-size: 10px; white-space: pre-wrap;
+            width: 150px; border: 1px solid #8B4513; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 9999; line-height: 1.5; font-weight: normal; opacity: 1 !important; visibility: visible;
+            text-align: left; /* 左对齐 */
+        }
         @media (max-width: 768px) { .palace-grid { display: flex; flex-direction: column; } .center-info { order: -1; margin-bottom: 0.5rem; } .palace-cell { min-height: 60px; } }
     </style>
 </head>
@@ -118,10 +128,14 @@
         const ZODIAC_SIGNS = ["白羊", "金牛", "双子", "巨蟹", "狮子", "处女", "天秤", "天蝎", "射手", "摩羯", "水瓶", "双鱼"];
         const LUNAR_MONTHS = ["正月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "冬月", "腊月"];
         const LUNAR_DAYS = ["初一", "初二", "初三", "初四", "初五", "初六", "初七", "初八", "初九", "初十", "十一", "十二", "十三", "十四", "十五", "十六", "十七", "十八", "十九", "二十", "廿一", "廿二", "廿三", "廿四", "廿五", "廿六", "廿七", "廿八", "廿九", "三十"];
+        const TERM_DICT = {
+            '比肩': '同我者为比肩。\n\n代表竞争、朋友、独立性。', '劫财': '同我而异性者为劫财。\n\n代表破财、竞争、感情用事。', '食神': '我生者为食神。\n\n代表福气、口才、才华、温和。', '伤官': '我生而异性者为伤官。\n\n代表才华、叛逆、变动、傲气。', '正财': '我克者为正财。\n\n代表薪资、现实、稳重、占有欲。', '偏财': '我克而异性者为偏财。\n\n代表横财、慷慨、投机、多情。', '正官': '克我者为正官。\n\n代表地位、名誉、纪律、自我约束。', '七杀': '克我而异性者为七杀。\n\n代表权力、压力、勇气、竞争。', '偏印': '生我者为偏印。\n\n代表直觉、艺术、孤僻、领悟力。', '正印': '生我而异性者为正印。\n\n代表学识、慈悲、保护、名誉。', '日主': '出生日的天干，代表命主本人。',
+            '海中金': '深藏不露，宝藏于海。\n\n代表含蓄、深沉、有潜力。', '炉中火': '炼火成钢，热烈旺盛。\n\n代表热情、果断、有毅力。', '大林木': '枝繁叶茂，荫庇他人。\n\n代表慷慨、仁慈、性格刚直。', '路旁土': '路途之土，踏实平稳。\n\n代表平凡、稳重、厚道。', '剑锋金': '金之最利，锋芒毕露。\n\n代表锐利、决断、刚强。', '山头火': '火势极高，延烧四野。\n\n代表热烈、急躁、威严。', '涧下水': '清澈细流，源远流长。\n\n代表柔和、聪明、耐心。', '城头土': '守卫之土，稳固坚硬。\n\n代表坚强、忠诚、保守。', '白蜡金': '金之初形，纯洁易塑。\n\n代表柔弱、纯真、有灵性。', '杨柳木': '随风摇曳，柔顺多变。\n\n代表灵活、多情、适应力强。', '泉中水': '源头活水，取之不尽。\n\n代表睿智、温和、不断进步。', '屋上土': '高处之土，遮风挡雨。\n\n代表责任、自傲、孤独。', '霹雳火': '电闪雷鸣，势不可挡。\n\n代表爆发、威猛、正直。', '松柏木': '岁寒凋，坚韧不拔。\n\n代表长寿、志气、孤高。', '长流水': '滔滔不绝，流向远方。\n\n代表远见、奔波、活力。', '沙中金': '沙里淘金，去伪存真。\n\n代表坚韧、细致、有才干。', '山下火': '草木之火，渐趋平缓。\n\n代表谦虚、内敛、后劲足。', '平地木': '平原之木，根基深厚。\n\n代表朴实、正直、有担当。', '壁上土': '筑墙之土，依附依靠。\n\n代表依附、忠厚、守规矩。', '金箔金': '薄金装饰，华而不实。\n\n代表虚荣、细腻、艺术感。', '佛灯火': '照亮黑暗，慈悲为怀。\n\n代表仁慈、智慧、孤独。', '天河水': '天降甘霖，滋润万物。\n\n代表博大、超脱、恩泽。', '大驿土': '通达之土，坦荡宽阔。\n\n代表胸怀、奔波、诚信。', '钗钏金': '首饰之金，精巧华丽。\n\n代表高贵、虚荣、细腻。', '桑柘木': '蚕食之木，服务他人。\n\n代表奉献、勤劳、柔顺。', '大溪水': '奔腾不息，汇聚成河。\n\n代表活力、雄心、不安分。', '沙中土': '沙土混合，松散多变。\n\n代表随和、犹豫、宽容。', '天上火': '普照大地，光明磊落。\n\n代表博大、公正、急躁。', '石榴木': '果实累累，秋季之华。\n\n代表多才、自傲、性格古怪。', '大海水': '浩瀚无垠，包容万物。\n\n代表宽广、深邃、变幻莫测。'
+        };
 
         const CITY_DATA = {
             "北京市": {"北京市": [116.40, 39.90]}, "上海市": {"上海市": [121.47, 31.23]}, "天津市": {"天津市": [117.20, 39.12]}, "重庆市": {"重庆市": [106.50, 29.53]},
-            "广东省": {"广州市": [113.23, 23.16], "深圳市": [114.07, 22.62], "珠海市": [113.52, 22.30], "汕头市": [116.69, 23.39], "佛山市": [113.11, 23.02], "江门市": [113.06, 22.58], "湛江市": [110.36, 21.27], "茂名市": [110.91, 21.66], "肇庆市": [112.44, 23.05], "清远市": [113.01, 23.70], "东莞市": [113.75, 23.04], "中山市": [113.38, 22.52]},
+            "广东省": {"广州市": [113.23, 23.16], "深圳市": [114.07, 22.62], "珠海市": [113.52, 22.30], "汕头市": [116.69, 23.39], "佛山市": [113.11, 23.02], "江门市": [113.06, 22.58], "湛江市": [110.36, 21.27], "茂名市": [110.91, 21.66], "肇庆市": [112.44, 23.05], "清远市": [113.01, 23.70], "潮州市": [116.63, 23.66], "揭阳市": [116.35, 23.55], "云浮市": [112.04, 22.91]},
             "浙江省": {"杭州市": [120.19, 30.26], "宁波市": [121.56, 29.86], "温州市": [120.67, 28.00], "绍兴市": [120.58, 30.01], "金华市": [119.64, 29.08]},
             "江苏省": {"南京市": [118.78, 32.04], "无锡市": [120.29, 31.59], "徐州市": [117.20, 34.26], "常州市": [119.95, 31.79], "苏州市": [120.62, 31.32], "南通市": [120.86, 32.01]},
             "山东省": {"济南市": [117.00, 36.65], "青岛市": [120.33, 36.07], "烟台市": [121.39, 37.52], "潍坊市": [119.10, 36.62]},
@@ -181,12 +195,7 @@
             Object.keys(CITY_DATA).forEach(p => provSel.add(new Option(p, p, p===defProv, p===defProv)));
 
             function getCalType() { return document.querySelector('input[name="calType"]:checked').value; }
-
-            function updateCityOptions() {
-                citySel.innerHTML = ''; const p = provSel.value;
-                Object.keys(CITY_DATA[p]).forEach(c => citySel.add(new Option(c, c, c===defCity, c===defCity)));
-            }
-
+            function updateCityOptions() { citySel.innerHTML = ''; const p = provSel.value; Object.keys(CITY_DATA[p]).forEach(c => citySel.add(new Option(c, c, c===defCity, c===defCity))); }
             function updateDayOptions() {
                 const y = parseInt(yearSel.value), type = getCalType(); monthSel.innerHTML = ''; daySel.innerHTML = '';
                 if (type === 'solar') {
@@ -238,8 +247,19 @@
         };
 
         function getWuXingClass(char) { return `color-${WUXING[char] || 'metal'}`; }
-        function renderPillar(title, gan, zhi, hide, ssGan, ssZhi, isDM = false) {
-            return `<div class="flex flex-col items-center ${isDM ? 'pillar-highlight' : ''}"><span class="text-[9px] text-red-700 font-bold mb-0.5">${ssGan||''}</span><span class="text-[10px] text-yellow-800">${title}</span><span class="text-xl font-bold ${getWuXingClass(gan)}">${gan}</span><span class="text-xl font-bold ${getWuXingClass(zhi)}">${zhi}</span><div class="flex flex-col items-center leading-none mt-0.5"><span class="text-[9px] opacity-40">${hide||''}</span><span class="text-[8px] text-red-800 opacity-60 scale-90">${ssZhi||''}</span></div></div>`;
+        function renderPillar(title, gan, zhi, hide, ssGan, ssZhi, nayin, isDM = false) {
+            const tipGan = TERM_DICT[ssGan] || ''; const tipZhi = TERM_DICT[ssZhi] || ''; const tipNaYin = TERM_DICT[nayin] || '';
+            return `<div class="flex flex-col items-center ${isDM ? 'pillar-highlight' : ''}">
+                    <span class="text-[9px] text-red-700 font-bold mb-0.5" ${tipGan ? `data-tip="${ssGan}: ${tipGan}"` : ''}>${ssGan||''}</span>
+                    <span class="text-[10px] text-yellow-800">${title}</span>
+                    <span class="text-xl font-bold ${getWuXingClass(gan)}">${gan}</span>
+                    <span class="text-xl font-bold ${getWuXingClass(zhi)}">${zhi}</span>
+                    <div class="flex flex-col items-center leading-none mt-0.5">
+                        <span style="color: rgba(44,62,80,0.4)" class="text-[9px]">${hide||''}</span>
+                        <span style="color: rgba(192,72,81,0.6)" class="text-[8px] scale-90" ${tipZhi ? `data-tip="${ssZhi}: ${tipZhi}"` : ''}>${ssZhi||''}</span>
+                        <span style="color: rgba(139,69,19,0.5)" class="text-[8px] mt-0.5 scale-90 whitespace-nowrap" ${tipNaYin ? `data-tip="${nayin}: ${tipNaYin}"` : ''}>${nayin||''}</span>
+                    </div>
+                </div>`;
         }
 
         function updateDisplay() {
@@ -274,14 +294,24 @@
                     document.querySelectorAll('.sc-btn').forEach(btn => btn.innerText.startsWith(baZi.getTimeZhi()) ? btn.classList.add('bg-yellow-700', 'text-white') : btn.classList.remove('bg-yellow-700', 'text-white'));
                 } else { document.getElementById('shichenInfo').innerText = "出生时辰：不详 (仅排六字)"; document.querySelectorAll('.sc-btn').forEach(btn => btn.classList.remove('bg-yellow-700', 'text-white')); }
 
-                document.getElementById('basicInfo').innerHTML = `<div class="text-base font-bold">${calcSolar.toYmd()} ${unk ? '不详' : String(calcSolar.getHour()).padStart(2, '0')+':'+String(calcSolar.getMinute()).padStart(2, '0')}</div><div class="text-sm text-yellow-900">${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()} ${unk ? '' : '('+baZi.getTimeZhi()+'时)'}</div><div class="flex flex-wrap justify-center gap-1 text-[10px] mt-1"><span class="bg-yellow-100 px-1 rounded">生肖:${lunar.getYearShengXiao()}</span><span class="bg-yellow-100 px-1 rounded">太阳:${calcSolar.getXingZuo()}</span><span class="bg-red-100 px-1 rounded">上升:${ascendant}</span><span class="bg-yellow-100 px-1 rounded">性别:${gen === '1' ? '男' : '女'}</span></div>`;
-                document.getElementById('baziDisplay').innerHTML = `${renderPillar('年', baZi.getYearGan(), baZi.getYearZhi(), baZi.getYearHideGan().join(''), baZi.getYearShiShenGan(), baZi.getYearShiShenZhi()[0])}${renderPillar('月', baZi.getMonthGan(), baZi.getMonthZhi(), baZi.getMonthHideGan().join(''), baZi.getMonthShiShenGan(), baZi.getMonthShiShenZhi()[0])}${renderPillar('日', baZi.getDayGan(), baZi.getDayZhi(), baZi.getDayHideGan().join(''), '日主', baZi.getDayShiShenZhi()[0], true)}${unk ? '<div class="flex flex-col items-center opacity-10"><span class="text-[10px] text-yellow-800">时</span><span class="text-xl font-bold text-gray-300">?</span><span class="text-xl font-bold text-gray-300">?</span></div>' : renderPillar('时', baZi.getTimeGan(), baZi.getTimeZhi(), baZi.getTimeHideGan().join(''), baZi.getTimeShiShenGan(), baZi.getTimeShiShenZhi()[0])}`;
+                document.getElementById('basicInfo').innerHTML = `<div class="text-base font-bold">${calcSolar.toYmd()} ${unk ? '不详' : String(calcSolar.getHour()).padStart(2, '0')+':'+String(calcSolar.getMinute()).padStart(2, '0')}</div><div class="text-sm text-yellow-900">${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()} ${unk ? '' : '('+baZi.getTimeZhi()+'时)'}</div><div class="flex flex-wrap justify-center gap-1 text-[10px] mt-1"><span class="bg-yellow-100 px-1 rounded">生肖:${lunar.getYearShengXiao()}</span><span class="bg-yellow-100 px-1 rounded cursor-help" data-tip="太阳星座：代表一个人的基本性格和自我认同。">太阳:${calcSolar.getXingZuo()}</span><span class="bg-red-100 px-1 rounded cursor-help" data-tip="上升星座：代表给人的第一印象、外在气质和人生面具。">上升:${ascendant}</span><span class="bg-yellow-100 px-1 rounded">性别:${gen==='1'?'男':'女'}</span></div>`;
+                document.getElementById('baziDisplay').innerHTML = `${renderPillar('年', baZi.getYearGan(), baZi.getYearZhi(), baZi.getYearHideGan().join(''), baZi.getYearShiShenGan(), baZi.getYearShiShenZhi()[0], lunar.getYearNaYin())}${renderPillar('月', baZi.getMonthGan(), baZi.getMonthZhi(), baZi.getMonthHideGan().join(''), baZi.getMonthShiShenGan(), baZi.getMonthShiShenZhi()[0], lunar.getMonthNaYin())}${renderPillar('日', baZi.getDayGan(), baZi.getDayZhi(), baZi.getDayHideGan().join(''), '日主', baZi.getDayShiShenZhi()[0], lunar.getDayNaYin(), true)}${unk ? '<div class="flex flex-col items-center opacity-10"><span class="text-[10px] text-yellow-800">时</span><span class="text-xl font-bold text-gray-300">?</span><span class="text-xl font-bold text-gray-300">?</span></div>' : renderPillar('时', baZi.getTimeGan(), baZi.getTimeZhi(), baZi.getTimeHideGan().join(''), baZi.getTimeShiShenGan(), baZi.getTimeShiShenZhi()[0], lunar.getTimeNaYin())}`;
+
+                BRANCHES.forEach((branch, index) => {
+                    const cell = document.getElementById(`pos-${index}`);
+                    const isTimeZhi = !unk && baZi.getTimeZhi() === branch, isYearZhi = baZi.getYearZhi() === branch;
+                    cell.innerHTML = `<div class="flex justify-between items-start leading-tight"><span class="text-lg font-bold ${getWuXingClass(branch)}">${branch}</span><div class="flex flex-col items-end">${isTimeZhi?'<span class="bg-red-700 text-white text-[8px] px-1 rounded">时</span>':''}${isYearZhi?'<span class="bg-yellow-700 text-white text-[8px] px-1 rounded ml-0.5">年</span>':''}</div></div><div class="text-[9px] text-yellow-900 opacity-20 text-right">${branch}宫</div>`;
+                    cell.style.backgroundColor = isTimeZhi ? "rgba(254, 243, 199, 0.8)" : "";
+                });
 
                 const mdText = `### 灵犀命理排盘报告\n\n- **公历**: ${calcSolar.toYmd()} ${unk ? '不详' : String(calcSolar.getHour()).padStart(2, '0')+':'+String(calcSolar.getMinute()).padStart(2, '0')}\n- **地点**: ${prov}-${city} (${lng}, ${lat})\n- **农历**: ${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()}\n- **${unk?'六字':'八字'}**: ${baZi.getYearGan()}${baZi.getYearZhi()}年 ${baZi.getMonthGan()}${baZi.getMonthZhi()}月 ${baZi.getDayGan()}${baZi.getDayZhi()}日${unk?'':' '+baZi.getTimeGan()+baZi.getTimeZhi()+'时'}\n- **太阳星座**: ${calcSolar.getXingZuo()}座 / **上升星座**: ${ascendant}座\n- **真太阳时修正**: ${off.total.toFixed(2)} 分钟\n- **性别**: ${gen==='1'?'男':'女'} / **生肖**: ${lunar.getYearShengXiao()} (${lunar.getYearNaYin()})\n\n#### 生辰八字 (${unk?'六字':'八字'})\n| 四柱 | 年柱 | 月柱 | 日柱 | 时柱 |\n| :--- | :--- | :--- | :--- | :--- |\n| **十神** | ${baZi.getYearShiShenGan()} | ${baZi.getMonthShiShenGan()} | 日主 | ${unk?'?':baZi.getTimeShiShenGan()} |\n| **干支** | ${baZi.getYearGan()}${baZi.getYearZhi()} | ${baZi.getMonthGan()}${baZi.getMonthZhi()} | ${baZi.getDayGan()}${baZi.getDayZhi()} | ${unk?'??':baZi.getTimeGan()+baZi.getTimeZhi()} |\n| **地势** | ${baZi.getYearShiShenZhi()[0]} | ${baZi.getMonthShiShenZhi()[0]} | ${baZi.getDayShiShenZhi()[0]} | ${unk?'?':baZi.getTimeShiShenZhi()[0]} |\n| **纳音** | ${lunar.getYearNaYin()} | ${lunar.getMonthNaYin()} | ${lunar.getDayNaYin()} | ${unk?'?':lunar.getTimeNaYin()} |\n| **藏干** | ${baZi.getYearHideGan().join('')} | ${baZi.getMonthHideGan().join('')} | ${baZi.getDayHideGan().join('')} | ${unk?'?':baZi.getTimeHideGan().join('')} |\n\n---\n*报告由灵犀排盘生成，${useSolar?'已应用真太阳时修正':'未应用修正'}*`;
                 document.getElementById('mdOutput').value = mdText;
             } catch (e) { console.error(e); }
         }
-        function copyMd() { const area = document.getElementById('mdOutput'); area.select(); document.execCommand('copy'); alert('报告已复制到剪贴板'); }
+        function copyMd() {
+            const area = document.getElementById('mdOutput'); const btn = event.target; const originalText = btn.innerText;
+            area.select(); document.execCommand('copy'); btn.innerText = '✅ 已复制!'; setTimeout(() => { btn.innerText = originalText; }, 1500);
+        }
     </script>
 </body>
 </html>

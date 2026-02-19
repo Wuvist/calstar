@@ -95,6 +95,20 @@
             <div id="shichenGrid" class="flex flex-wrap gap-1 mt-2 border-t border-yellow-100 pt-2">
                 <!-- 子丑寅卯按钮由 JS 生成 -->
             </div>
+
+            <!-- 地点选择与真太阳时修正 -->
+            <div class="flex flex-wrap items-center gap-3 mt-2 border-t border-yellow-100 pt-2">
+                <div class="flex items-center space-x-1">
+                    <label class="text-[10px] font-bold text-yellow-900">出生地</label>
+                    <select id="provinceSel" class="bg-transparent text-[10px] border-b border-yellow-900 focus:outline-none cursor-pointer"></select>
+                    <select id="citySel" class="bg-transparent text-[10px] border-b border-yellow-900 focus:outline-none cursor-pointer"></select>
+                </div>
+                <div class="flex items-center space-x-1 ml-auto">
+                    <label class="flex items-center text-[10px] cursor-pointer text-red-900 font-bold">
+                        <input type="checkbox" id="useSolarTime" class="mr-1"> 自动修正为真太阳时
+                    </label>
+                </div>
+            </div>
         </section>
 
         <!-- 主体区域 -->
@@ -142,6 +156,62 @@
         };
         const BRANCHES = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
 
+        // 中国主要城市经度数据
+        const CITY_DATA = {
+            "北京市": {"北京市": 116.40},
+            "上海市": {"上海市": 121.47},
+            "天津市": {"天津市": 117.20},
+            "重庆市": {"重庆市": 106.50},
+            "广东省": {"广州市": 113.23, "深圳市": 114.07, "珠海市": 113.52, "汕头市": 116.69, "佛山市": 113.11, "东莞市": 113.75},
+            "浙江省": {"杭州市": 120.19, "宁波市": 121.56, "温州市": 120.67, "嘉兴市": 120.76, "金华市": 119.64},
+            "江苏省": {"南京市": 118.78, "苏州市": 120.62, "无锡市": 120.29, "徐州市": 117.20, "常州市": 119.95},
+            "福建省": {"福州市": 119.30, "厦门市": 118.10, "泉州市": 118.58},
+            "山东省": {"济南市": 117.00, "青岛市": 120.33, "烟台市": 121.39, "潍坊市": 119.10},
+            "河南省": {"郑州市": 113.65, "洛阳市": 112.44, "开封市": 114.35},
+            "湖北省": {"武汉市": 114.31, "宜昌市": 111.29},
+            "湖南省": {"长沙市": 113.00, "衡阳市": 112.61},
+            "四川省": {"成都市": 104.06, "绵阳市": 104.73},
+            "陕西省": {"西安市": 108.95},
+            "河北省": {"石家庄市": 114.48, "唐山市": 118.18},
+            "山西省": {"太原市": 112.53},
+            "辽宁省": {"沈阳市": 123.43, "大连市": 121.62},
+            "吉林省": {"长春市": 125.35},
+            "黑龙江省": {"哈尔滨市": 126.63},
+            "安徽省": {"合肥市": 117.27},
+            "江西省": {"南昌市": 115.89},
+            "云南省": {"昆明市": 102.73},
+            "贵州省": {"贵阳市": 106.71},
+            "海南省": {"海口市": 110.35, "三亚市": 109.51},
+            "甘肃省": {"兰州市": 103.73},
+            "青海省": {"西宁市": 101.74},
+            "内蒙古": {"呼和浩特": 111.65, "包头市": 109.81},
+            "广西": {"南宁市": 108.33, "桂林市": 110.28},
+            "西藏": {"拉萨市": 91.11},
+            "宁夏": {"银川市": 106.27},
+            "新疆": {"乌鲁木齐": 87.68, "喀什市": 75.99}
+        };
+
+        // 计算均时差 (EOT) - 估算公式
+        function getEOT(dayOfYear) {
+            const b = (2 * Math.PI * (dayOfYear - 81)) / 365;
+            return 9.87 * Math.sin(2 * b) - 7.53 * Math.cos(b) - 1.5 * Math.sin(b);
+        }
+
+        // 计算总修正分钟数 (经度差 + 均时差)
+        function getSolarTimeOffset(longitude, year, month, day) {
+            // 经度修正: 每度 4 分钟
+            const longOffset = (longitude - 120.0) * 4;
+            
+            // 均时差修正
+            const date = new Date(year, month - 1, day);
+            const start = new Date(year, 0, 0);
+            const diff = date - start;
+            const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const eotOffset = getEOT(dayOfYear);
+            
+            return { total: longOffset + eotOffset, longOffset, eotOffset };
+        }
+
         window.onload = function() {
             const lastData = JSON.parse(localStorage.getItem('bazi_last_input')) || {};
             const now = new Date();
@@ -152,6 +222,9 @@
             const defMin = lastData.mm !== undefined ? lastData.mm : now.getMinutes();
             const defGender = lastData.gender !== undefined ? lastData.gender : "1";
             const defUnknown = lastData.unknown || false;
+            const defProvince = lastData.province || "北京市";
+            const defCity = lastData.city || "北京市";
+            const defUseSolar = lastData.useSolar || false;
 
             const yearSel = document.getElementById('inputYear');
             const monthSel = document.getElementById('inputMonth');
@@ -159,11 +232,26 @@
             const hourSel = document.getElementById('inputHour');
             const minSel = document.getElementById('inputMin');
             const unknownCheck = document.getElementById('timeUnknown');
+            const provinceSel = document.getElementById('provinceSel');
+            const citySel = document.getElementById('citySel');
+            const solarCheck = document.getElementById('useSolarTime');
 
             for(let i=1900; i<=2100; i++) yearSel.add(new Option(i + '年', i, i===defY, i===defY));
             for(let i=1; i<=12; i++) monthSel.add(new Option(String(i).padStart(2, '0') + '月', i, i===defM, i===defM));
             for(let i=0; i<24; i++) hourSel.add(new Option(String(i).padStart(2, '0') + '时', i, i===defH, i===defH));
             for(let i=0; i<60; i++) minSel.add(new Option(String(i).padStart(2, '0') + '分', i, i===defMin, i===defMin));
+
+            // 初始化地点
+            Object.keys(CITY_DATA).forEach(p => provinceSel.add(new Option(p, p, p===defProvince, p===defProvince)));
+            function updateCityOptions() {
+                const p = provinceSel.value;
+                citySel.innerHTML = '';
+                Object.keys(CITY_DATA[p]).forEach(c => citySel.add(new Option(c, c, c===defCity, c===defCity)));
+            }
+            provinceSel.onchange = () => { updateCityOptions(); updateDisplay(); };
+            citySel.onchange = updateDisplay;
+            solarCheck.onchange = updateDisplay;
+            updateCityOptions();
 
             // 初始化 12 时辰按钮
             const shichenGrid = document.getElementById('shichenGrid');
@@ -173,7 +261,7 @@
                 btn.innerText = b + '时';
                 btn.onclick = () => {
                     unknownCheck.checked = false;
-                    hourSel.value = (i * 2 + 23) % 24; // 设置为该时辰的第一个小时
+                    hourSel.value = (i * 2 + 23) % 24;
                     minSel.value = 0;
                     updateDisplay();
                 };
@@ -201,6 +289,7 @@
 
             updateDayOptions();
             unknownCheck.checked = defUnknown;
+            solarCheck.checked = defUseSolar;
             document.getElementById('timeInputGroup').style.opacity = defUnknown ? "0.3" : "1";
             document.querySelector(`input[name="gender"][value="${defGender}"]`).checked = true;
             document.getElementById('btnCalculate').onclick = updateDisplay;
@@ -233,44 +322,58 @@
                 const mm = parseInt(document.getElementById('inputMin').value);
                 const gender = document.querySelector('input[name="gender"]:checked').value;
                 const unknown = document.getElementById('timeUnknown').checked;
-                
-                localStorage.setItem('bazi_last_input', JSON.stringify({ y, m, d, hh, mm, gender, unknown }));
+                const province = document.getElementById('provinceSel').value;
+                const city = document.getElementById('citySel').value;
+                const useSolar = document.getElementById('useSolarTime').checked;
+
+                localStorage.setItem('bazi_last_input', JSON.stringify({ y, m, d, hh, mm, gender, unknown, province, city, useSolar }));
 
                 const S = window.Solar || Solar, L = window.Lunar || Lunar;
-                const solar = S.fromYmdHms(y, m, d, hh, mm, 0), lunar = L.fromSolar(solar), baZi = lunar.getEightChar();
+                
+                // 计算真太阳时修正
+                const longitude = CITY_DATA[province][city];
+                const offsetData = getSolarTimeOffset(longitude, y, m, d);
+                
+                // 决定实际用于排盘的时间
+                let calcDate = new Date(y, m - 1, d, hh, mm);
+                if (useSolar && !unknown) {
+                    calcDate = new Date(calcDate.getTime() + offsetData.total * 60000);
+                }
 
-                // 只有在时间已知时计算时辰信息
+                const solar = S.fromYmdHms(calcDate.getFullYear(), calcDate.getMonth() + 1, calcDate.getDate(), calcDate.getHours(), calcDate.getMinutes(), 0);
+                const lunar = L.fromSolar(solar);
+                const baZi = lunar.getEightChar();
+
                 if (!unknown) {
-                    let startHour = hh % 2 === 0 ? hh - 1 : hh;
+                    let startHour = solar.getHour() % 2 === 0 ? solar.getHour() - 1 : solar.getHour();
                     if (startHour === -1) startHour = 23;
-                    document.getElementById('shichenInfo').innerText = `时辰范围：${String(startHour).padStart(2, '0')}:00 ~ ${String((startHour+2)%24).padStart(2, '0')}:00`;
+                    document.getElementById('shichenInfo').innerHTML = `
+                        <div class="flex flex-col">
+                            <span>当前时辰范围：${String(startHour).padStart(2, '0')}:00 ~ ${String((startHour+2)%24).padStart(2, '0')}:00</span>
+                            <span class="text-[9px] opacity-80">修正值: ${offsetData.total.toFixed(1)}分 (经度:${offsetData.longOffset.toFixed(1)} + 均时差:${offsetData.eotOffset.toFixed(1)})</span>
+                        </div>`;
                     
-                    // 高亮当前时辰按钮
                     const curZhi = baZi.getTimeZhi();
                     document.querySelectorAll('.sc-btn').forEach(btn => {
-                        if (btn.innerText.startsWith(curZhi)) {
-                            btn.classList.add('bg-yellow-700', 'text-white');
-                        } else {
-                            btn.classList.remove('bg-yellow-700', 'text-white');
-                        }
+                        if (btn.innerText.startsWith(curZhi)) btn.classList.add('bg-yellow-700', 'text-white');
+                        else btn.classList.remove('bg-yellow-700', 'text-white');
                     });
                 } else {
                     document.getElementById('shichenInfo').innerText = "出生时辰：不详 (仅排六字)";
                     document.querySelectorAll('.sc-btn').forEach(btn => btn.classList.remove('bg-yellow-700', 'text-white'));
                 }
 
-                // 1. 中心信息
                 document.getElementById('basicInfo').innerHTML = `
-                    <div class="text-base font-bold">${solar.toYmd()} ${unknown ? '时辰不详' : String(hh).padStart(2, '0')+':'+String(mm).padStart(2, '0')}</div>
+                    <div class="text-base font-bold">${solar.toYmd()} ${unknown ? '时辰不详' : String(solar.getHour()).padStart(2, '0')+':'+String(solar.getMinute()).padStart(2, '0')}</div>
                     <div class="text-sm text-yellow-900">${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()} ${unknown ? '' : '('+baZi.getTimeZhi()+'时)'}</div>
-                    <div class="flex justify-center space-x-1 text-[10px] mt-1">
+                    <div class="flex flex-wrap justify-center space-x-1 text-[10px] mt-1">
+                        <span class="bg-yellow-100 px-1 rounded">${province}-${city}</span>
                         <span class="bg-yellow-100 px-1 rounded">生肖：${lunar.getYearShengXiao()}</span>
                         <span class="bg-yellow-100 px-1 rounded">星座：${solar.getXingZuo()}</span>
                         <span class="bg-yellow-100 px-1 rounded">性别：${gender === '1' ? '男' : '女'}</span>
                     </div>
                 `;
 
-                // 2. 八字渲染
                 const timePillarHtml = unknown ? '<div class="flex flex-col items-center opacity-10"><span class="text-[10px] text-yellow-800">时</span><span class="text-xl font-bold text-gray-300">?</span><span class="text-xl font-bold text-gray-300">?</span></div>' : 
                     renderPillar('时', baZi.getTimeGan(), baZi.getTimeZhi(), baZi.getTimeHideGan().join(''), baZi.getTimeShiShenGan(), baZi.getTimeShiShenZhi()[0]);
 
@@ -281,7 +384,6 @@
                     ${timePillarHtml}
                 `;
 
-                // 3. 12宫位
                 BRANCHES.forEach((branch, index) => {
                     const cell = document.getElementById(`pos-${index}`);
                     const isTimeZhi = !unknown && baZi.getTimeZhi() === branch;
@@ -296,9 +398,10 @@
                     cell.style.backgroundColor = isTimeZhi ? "rgba(254, 243, 199, 0.8)" : "";
                 });
 
-                // 4. 生成 Markdown 文本
                 let mdText = `### 灵犀命理排盘报告\n\n` +
-                    `- **公历**: ${solar.toYmd()} ${unknown ? '时辰不详' : String(hh).padStart(2, '0')+':'+String(mm).padStart(2, '0')}\n` +
+                    `- **公历**: ${solar.toYmd()} ${unknown ? '时辰不详' : String(solar.getHour()).padStart(2, '0')+':'+String(solar.getMinute()).padStart(2, '0')}\n` +
+                    `- **地点**: ${province} - ${city} (经度: ${longitude})\n` +
+                    `- **真太阳时修正**: ${offsetData.total.toFixed(2)} 分钟\n` +
                     `- **农历**: ${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()}\n` +
                     `- **性别**: ${gender === '1' ? '男 (乾造)' : '女 (坤造)'}\n` +
                     `- **生肖**: ${lunar.getYearShengXiao()} (${lunar.getYearNaYin()})\n` +
@@ -310,7 +413,7 @@
                     `| **地势** | ${baZi.getYearShiShenZhi()[0]} | ${baZi.getMonthShiShenZhi()[0]} | ${baZi.getDayShiShenZhi()[0]} | ${unknown ? '?' : baZi.getTimeShiShenZhi()[0]} |\n` +
                     `| **纳音** | ${lunar.getYearNaYin()} | ${lunar.getMonthNaYin()} | ${lunar.getDayNaYin()} | ${unknown ? '?' : lunar.getTimeNaYin()} |\n` +
                     `| **藏干** | ${baZi.getYearHideGan().join('')} | ${baZi.getMonthHideGan().join('')} | ${baZi.getDayHideGan().join('')} | ${unknown ? '?' : baZi.getTimeHideGan().join('')} |\n\n` +
-                    `---\n*本报告由灵犀排盘生成*`;
+                    `---\n*本报告由灵犀排盘生成，${useSolar ? '已应用真太阳时修正' : '未应用修正'}*`;
                 document.getElementById('mdOutput').value = mdText;
             } catch (e) { console.error(e); }
         }

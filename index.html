@@ -194,6 +194,41 @@
             return { total: longOff + eotOff, longOff, eotOff };
         }
 
+        function getExactSunSign(solarObj) {
+            const zodiacNames = ["摩羯", "水瓶", "双鱼", "白羊", "金牛", "双子", "巨蟹", "狮子", "处女", "天秤", "天蝎", "射手"];
+            const zhongQiNames = ["冬至", "大寒", "雨水", "春分", "谷雨", "小满", "夏至", "大暑", "处暑", "秋分", "霜降", "小雪"];
+            const years = [solarObj.getYear() - 1, solarObj.getYear(), solarObj.getYear() + 1];
+            let allZhongQi = [];
+            years.forEach(y => {
+                const l = Lunar.fromYmd(y, 1, 1);
+                const table = l.getJieQiTable();
+                zhongQiNames.forEach(name => {
+                    if (table[name]) allZhongQi.push({ name, jd: table[name].getJulianDay() });
+                });
+            });
+            allZhongQi.sort((a, b) => a.jd - b.jd);
+            const currentJd = solarObj.getJulianDay();
+            for (let i = 0; i < allZhongQi.length - 1; i++) {
+                if (currentJd >= allZhongQi[i].jd && currentJd < allZhongQi[i+1].jd) {
+                    const signIndex = zhongQiNames.indexOf(allZhongQi[i].name);
+                    const prevZhongQi = allZhongQi[i];
+                    const nextZhongQi = allZhongQi[i+1];
+                    const diffPrev = (currentJd - prevZhongQi.jd) * 24;
+                    const diffNext = (nextZhongQi.jd - currentJd) * 24;
+                    let isCusp = false, cuspDetail = "";
+                    if (diffPrev < 24) {
+                        isCusp = true;
+                        cuspDetail = `距离${prevZhongQi.name}节气/进入${zodiacNames[signIndex]}座仅 ${diffPrev.toFixed(1)} 小时。`;
+                    } else if (diffNext < 24) {
+                        isCusp = true;
+                        cuspDetail = `距离${nextZhongQi.name}节气/进入${zodiacNames[(signIndex+1)%12]}座仅 ${diffNext.toFixed(1)} 小时。`;
+                    }
+                    return { name: zodiacNames[signIndex] + "座", isCusp, cuspDetail };
+                }
+            }
+            return { name: solarObj.getXingZuo() + "座", isCusp: false, cuspDetail: "" };
+        }
+
         function getAscendant(year, month, day, hh, mm, lng, lat) {
             const date = new Date(Date.UTC(year, month - 1, day, hh, mm));
             const jd = (date.getTime() / 86400000) + 2440587.5;
@@ -205,7 +240,7 @@
             const ram = lst * 15 * Math.PI / 180;
             const eps = (23.4393 - 0.013 * t) * Math.PI / 180;
             const phi = lat * Math.PI / 180;
-            let asc = Math.atan2(-Math.cos(ram), Math.sin(ram) * Math.cos(eps) + Math.tan(phi) * Math.sin(eps));
+            let asc = Math.atan2(Math.cos(ram), -Math.sin(ram) * Math.cos(eps) - Math.tan(phi) * Math.sin(eps));
             asc = asc * 180 / Math.PI; if (asc < 0) asc += 360;
             return ZODIAC_SIGNS[Math.floor(asc / 30)];
         }
@@ -344,6 +379,7 @@
                 }
 
                 const asc = unk ? "?" : getAscendant(cSol.getYear(), cSol.getMonth(), cSol.getDay(), cSol.getHour(), cSol.getMinute(), lng, lat);
+                const sunSignData = getExactSunSign(cSol);
 
                 if (!unk) {
                     let st = cSol.getHour() % 2 === 0 ? cSol.getHour() - 1 : cSol.getHour(); if (st === -1) st = 23;
@@ -351,7 +387,7 @@
                     document.querySelectorAll('.sc-btn').forEach(btn => btn.innerText.startsWith(baZi.getTimeZhi()) ? btn.classList.add('bg-yellow-700', 'text-white') : btn.classList.remove('bg-yellow-700', 'text-white'));
                 } else { document.getElementById('shichenInfo').innerText = "出生时辰不详"; }
 
-                document.getElementById('basicInfo').innerHTML = `<div class="text-[12px] md:text-[13px] font-bold">${cSol.toYmd()} ${unk ? '' : String(cSol.getHour()).padStart(2, '0')+':'+String(cSol.getMinute()).padStart(2, '0')}</div><div class="text-[10px] md:text-[11px] text-yellow-900">${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()} ${unk ? '' : '('+baZi.getTimeZhi()+'时)'}</div><div class="flex flex-wrap justify-center gap-x-1 text-[8px] md:text-[9px] mt-0.5 opacity-80"><span>${lunar.getYearShengXiao()}</span><span class="cursor-help" data-tip="太阳星座：代表一个人的基本性格。">${cSol.getXingZuo()}座</span><span class="text-red-800 font-bold cursor-help" data-tip="上升星座：代表给人的第一印象。">(${asc})</span></div>`;
+                document.getElementById('basicInfo').innerHTML = `<div class="text-[12px] md:text-[13px] font-bold">${cSol.toYmd()} ${unk ? '' : String(cSol.getHour()).padStart(2, '0')+':'+String(cSol.getMinute()).padStart(2, '0')}</div><div class="text-[10px] md:text-[11px] text-yellow-900">${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()} ${unk ? '' : '('+baZi.getTimeZhi()+'时)'}</div><div class="flex flex-wrap justify-center gap-x-1 text-[8px] md:text-[9px] mt-0.5 opacity-80"><span>${lunar.getYearShengXiao()}</span><span class="cursor-help" data-tip="太阳星座：代表一个人的基本性格。${sunSignData.isCusp ? '\n⚠️' + sunSignData.cuspDetail : ''}">${sunSignData.name}${sunSignData.isCusp ? '*' : ''}</span><span class="text-red-800 font-bold cursor-help" data-tip="上升星座：代表给人的第一印象。">(${asc}座)</span></div>`;
                 document.getElementById('baziDisplay').innerHTML = `${renderPillar('年', baZi.getYearGan(), baZi.getYearZhi(), baZi.getYearHideGan().join(''), baZi.getYearShiShenGan(), baZi.getYearShiShenZhi()[0], lunar.getYearNaYin())}${renderPillar('月', baZi.getMonthGan(), baZi.getMonthZhi(), baZi.getMonthHideGan().join(''), baZi.getMonthShiShenGan(), baZi.getMonthShiShenZhi()[0], lunar.getMonthNaYin())}${renderPillar('日', baZi.getDayGan(), baZi.getDayZhi(), baZi.getDayHideGan().join(''), '日主', baZi.getDayShiShenZhi()[0], lunar.getDayNaYin(), true)}${unk ? '<div class="flex flex-col items-center opacity-20"><span class="text-[9px] text-yellow-800">时</span><span class="text-xl font-bold text-gray-300">?</span></div>' : renderPillar('时', baZi.getTimeGan(), baZi.getTimeZhi(), baZi.getTimeHideGan().join(''), baZi.getTimeShiShenGan(), baZi.getTimeShiShenZhi()[0], lunar.getTimeNaYin())}`;
 
                 BRANCHES.forEach((branch, index) => {
@@ -364,7 +400,7 @@
                     else cell.classList.remove('ring-1', 'ring-red-300');
                 });
 
-                let mdText = `### 问天星算排盘报告\n\n- **公历**: ${cSol.toYmd()} ${unk ? '不详' : String(cSol.getHour()).padStart(2, '0')+':'+String(cSol.getMinute()).padStart(2, '0')}\n- **地点**: ${prov}-${city} (${lng}, ${lat})\n- **农历**: ${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()}\n- **${unk?'六字':'八字'}**: ${baZi.getYearGan()}${baZi.getYearZhi()}年 ${baZi.getMonthGan()}${baZi.getMonthZhi()}月 ${baZi.getDayGan()}${baZi.getDayZhi()}日${unk?'':' '+baZi.getTimeGan()+baZi.getTimeZhi()+'时'}\n- **太阳星座**: ${cSol.getXingZuo()}座 / **上升星座**: ${asc}座\n- **真太阳时修正**: ${off.total.toFixed(2)} 分钟\n- **性别**: ${gen==='1'?'男':'女'} / **生肖**: ${lunar.getYearShengXiao()} (${lunar.getYearNaYin()})\n\n#### 生辰八字 (${unk?'六字' : '八字'})\n| 四柱 | 年柱 | 月柱 | 日柱 | 时柱 |\n| :--- | :--- | :--- | :--- | :--- |\n| **十神** | ${baZi.getYearShiShenGan()} | ${baZi.getMonthShiShenGan()} | 日主 | ${unk?'?':baZi.getTimeShiShenGan()} |\n| **干支** | ${baZi.getYearGan()}${baZi.getYearZhi()} | ${baZi.getMonthGan()}${baZi.getMonthZhi()} | ${baZi.getDayGan()}${baZi.getDayZhi()} | ${unk?'??':baZi.getTimeGan()+baZi.getTimeZhi()} |\n| **地势** | ${baZi.getYearShiShenZhi()[0]} | ${baZi.getMonthShiShenZhi()[0]} | ${baZi.getDayShiShenZhi()[0]} | ${unk?'?':baZi.getTimeShiShenZhi()[0]} |\n| **纳音** | ${lunar.getYearNaYin()} | ${lunar.getMonthNaYin()} | ${lunar.getDayNaYin()} | ${unk?'?':lunar.getTimeNaYin()} |\n| **藏干** | ${baZi.getYearHideGan().join('')} | ${baZi.getMonthHideGan().join('')} | ${baZi.getDayHideGan().join('')} | ${unk?'?':baZi.getTimeHideGan().join('')} |\n\n### 📊 命局五行与基础参数\n- **五行统计**：${wxStats}\n- **空亡**：日空[${dayKong}] | 年空[${yearKong}]\n- **三垣**：胎元[${taiYuan}] | 命宫[${mingGong}] | 身宫[${shenGong}]\n\n### 🌟 四柱神煞 (解盘关键取象)\n- **年柱** (${baZi.getYearGan()}${baZi.getYearZhi()}): [${shensN.join(', ') || '无'}]\n- **月柱** (${baZi.getMonthGan()}${baZi.getMonthZhi()}): [${shensY.join(', ') || '无'}]\n- **日柱** (${baZi.getDayGan()}${baZi.getDayZhi()}): [${shensR.join(', ') || '无'}]\n- **时柱** (${unk?'??' : baZi.getTimeGan()+baZi.getTimeZhi()}): [${shensS.join(', ') || '无'}]\n\n### ⏳ 命运轨迹 (大运走势)\n**交运时间**: 出生后 ${yun.getStartYear()} 年 ${yun.getStartMonth()} 个月 ${yun.getStartDay()} 天交运 (公历 ${startSolar.toYmd()} 起运)\n| 步数 | 虚岁 | 起运年份 | 大运干支 |\n| --- | --- | --- | --- |\n`;
+                let mdText = `### 问天星算排盘报告\n\n- **公历**: ${cSol.toYmd()} ${unk ? '不详' : String(cSol.getHour()).padStart(2, '0')+':'+String(cSol.getMinute()).padStart(2, '0')}\n- **地点**: ${prov}-${city} (${lng}, ${lat})\n- **农历**: ${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()}\n- **${unk?'六字':'八字'}**: ${baZi.getYearGan()}${baZi.getYearZhi()}年 ${baZi.getMonthGan()}${baZi.getMonthZhi()}月 ${baZi.getDayGan()}${baZi.getDayZhi()}日${unk?'':' '+baZi.getTimeGan()+baZi.getTimeZhi()+'时'}\n- **真太阳时修正**: ${off.total.toFixed(2)} 分钟\n- **性别**: ${gen==='1'?'男':'女'} / **生肖**: ${lunar.getYearShengXiao()} (${lunar.getYearNaYin()})\n\n### 🌌 占星学核心配置 (天文级高精度校准)\n- **精准太阳星座**: ${sunSignData.name} ${sunSignData.isCusp ? '\n  *(⚠️ 系统提示：高精度天文计算判定。命主出生于交界日，' + sunSignData.cuspDetail + '属典型的“边界星座 Cusp”。请在后续性格与运势解析中，重点融合该两星座的双重特质进行深度解读。)*' : ''}\n- **精准上升星座**: ${asc}座 \n  *(基于地理坐标：经度 ${lng}°E, 纬度 ${lat}°N，结合地方恒星时精确推导)*\n\n#### 生辰八字 (${unk?'六字' : '八字'})\n| 四柱 | 年柱 | 月柱 | 日柱 | 时柱 |\n| :--- | :--- | :--- | :--- | :--- |\n| **十神** | ${baZi.getYearShiShenGan()} | ${baZi.getMonthShiShenGan()} | 日主 | ${unk?'?':baZi.getTimeShiShenGan()} |\n| **干支** | ${baZi.getYearGan()}${baZi.getYearZhi()} | ${baZi.getMonthGan()}${baZi.getMonthZhi()} | ${baZi.getDayGan()}${baZi.getDayZhi()} | ${unk?'??':baZi.getTimeGan()+baZi.getTimeZhi()} |\n| **地势** | ${baZi.getYearShiShenZhi()[0]} | ${baZi.getMonthShiShenZhi()[0]} | ${baZi.getDayShiShenZhi()[0]} | ${unk?'?':baZi.getTimeShiShenZhi()[0]} |\n| **纳音** | ${lunar.getYearNaYin()} | ${lunar.getMonthNaYin()} | ${lunar.getDayNaYin()} | ${unk?'?':lunar.getTimeNaYin()} |\n| **藏干** | ${baZi.getYearHideGan().join('')} | ${baZi.getMonthHideGan().join('')} | ${baZi.getDayHideGan().join('')} | ${unk?'?':baZi.getTimeHideGan().join('')} |\n\n### 📊 命局五行与基础参数\n- **五行统计**：${wxStats}\n- **空亡**：日空[${dayKong}] | 年空[${yearKong}]\n- **三垣**：胎元[${taiYuan}] | 命宫[${mingGong}] | 身宫[${shenGong}]\n\n### 🌟 四柱神煞 (解盘关键取象)\n- **年柱** (${baZi.getYearGan()}${baZi.getYearZhi()}): [${shensN.join(', ') || '无'}]\n- **月柱** (${baZi.getMonthGan()}${baZi.getMonthZhi()}): [${shensY.join(', ') || '无'}]\n- **日柱** (${baZi.getDayGan()}${baZi.getDayZhi()}): [${shensR.join(', ') || '无'}]\n- **时柱** (${unk?'??' : baZi.getTimeGan()+baZi.getTimeZhi()}): [${shensS.join(', ') || '无'}]\n\n### ⏳ 命运轨迹 (大运走势)\n**交运时间**: 出生后 ${yun.getStartYear()} 年 ${yun.getStartMonth()} 个月 ${yun.getStartDay()} 天交运 (公历 ${startSolar.toYmd()} 起运)\n| 步数 | 虚岁 | 起运年份 | 大运干支 |\n| --- | --- | --- | --- |\n`;
                 
                 dayuns.slice(1, 9).forEach((dy, i) => {
                     mdText += `| ${i+1} | ${dy.getStartAge()}岁 | ${dy.getStartYear()} | ${dy.getGanZhi()} |\n`;

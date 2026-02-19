@@ -145,7 +145,42 @@
         const ZODIAC_SIGNS = ["白羊", "金牛", "双子", "巨蟹", "狮子", "处女", "天秤", "天蝎", "射手", "摩羯", "水瓶", "双鱼"];
         const LUNAR_MONTHS = ["正月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "冬月", "腊月"];
         const LUNAR_DAYS = ["初一", "初二", "初三", "初四", "初五", "初六", "初七", "初八", "初九", "初十", "十一", "十二", "十三", "十四", "十五", "十六", "十七", "十八", "十九", "二十", "廿一", "廿二", "廿三", "廿四", "廿五", "廿六", "廿七", "廿八", "廿九", "三十"];
+        const PALACES = ["命宫", "兄弟", "夫妻", "子女", "财帛", "疾厄", "迁移", "交友", "官禄", "田宅", "福德", "父母"];
         const TERM_DICT = { '比肩': '同我者为比肩。\n\n代表竞争、朋友、独立性。', '劫财': '同我而异性者为劫财。\n\n代表破财、竞争、感情用事。', '食神': '我生者为食神。\n\n代表福气、口才、才华、温和。', '伤官': '我生而异性者为伤官。\n\n代表才华、叛逆、变动、傲气。', '正财': '我克者为正财。\n\n代表薪资、现实、稳重、占有欲。', '偏财': '我克而异性者为偏财。\n\n代表横财、慷慨、投机、多情。', '正官': '克我者为正官。\n\n代表地位、名誉、纪律、自我约束。', '七杀': '克我而异性者为七杀。\n\n代表权力、压力、勇气、竞争。', '偏印': '生我者为偏印。\n\n代表直觉、艺术、孤僻、领悟力。', '正印': '生我而异性者为正印。\n\n代表学识、慈悲、保护、名誉。', '日主': '出生日的天干，代表命主本人。', '海中金': '深藏不露。\n\n代表含蓄深沉。', '炉中火': '热烈旺盛。\n\n代表热情果断。', '大林木': '枝繁叶茂。\n\n代表仁慈正直。', '路旁土': '踏实平稳。\n\n代表稳重厚道。', '剑锋金': '锐利决断。\n\n代表刚强锐气。', '山头火': '火势极高。\n\n代表威严急躁。', '涧下水': '清澈细流。\n\n代表柔和耐心。', '城头土': '守卫之土。\n\n代表忠诚保守。', '白蜡金': '纯洁易塑。\n\n代表柔弱灵性。', '杨柳木': '随风摇曳。\n\n代表灵活适应。', '泉中水': '源头活水。\n\n代表睿智温和。', '屋上土': '遮风挡雨。\n\n代表责任孤独。', '霹雳火': '爆发威猛。\n\n代表正直爆发。', '松柏木': '坚韧不拔。\n\n代表长寿孤高。', '长流水': '滔滔不绝。\n\n代表远见奔波。', '沙中金': '去伪存真。\n\n代表坚韧细致。', '山下火': '渐趋平缓。\n\n代表谦虚内敛。', '平地木': '平原之木。\n\n代表朴实担当。', '壁上土': '依附依靠。\n\n代表忠厚规矩。', '金箔金': '华而不实。\n\n代表细腻艺术。', '佛灯火': '照亮黑暗。\n\n代表仁慈孤独。', '天河水': '滋润万物。\n\n代表博大恩泽。', '大驿土': '坦荡宽阔。\n\n代表胸怀诚信。', '钗钏金': '精巧华丽。\n\n代表高贵细腻。', '桑柘木': '奉献勤劳。\n\n代表柔顺奉献。', '大溪水': '奔腾不息。\n\n代表活力雄心。', '沙中土': '松散多变。\n\n代表随和宽容。', '天上火': '光明磊落。\n\n代表博大公正。', '石榴木': '多才多艺。\n\n代表多才性格。', '大海水': '浩瀚无垠。\n\n代表宽广包容。' };
+
+        function getWuXingStats(baZi) {
+            const counts = { 'wood': 0, 'fire': 0, 'earth': 0, 'metal': 0, 'water': 0 };
+            const chars = [baZi.getYearGan(), baZi.getYearZhi(), baZi.getMonthGan(), baZi.getMonthZhi(), baZi.getDayGan(), baZi.getDayZhi(), baZi.getTimeGan(), baZi.getTimeZhi()];
+            chars.forEach(c => { if(WUXING[c]) counts[WUXING[c]]++; });
+            let result = `${counts.wood}木 ${counts.fire}火 ${counts.earth}土 ${counts.metal}金 ${counts.water}水`;
+            const missing = [];
+            if(counts.wood === 0) missing.push('木'); if(counts.fire === 0) missing.push('火'); if(counts.earth === 0) missing.push('土'); if(counts.metal === 0) missing.push('金'); if(counts.water === 0) missing.push('水');
+            if(missing.length > 0) result += ` ➔ [五行缺${missing.join('')}]`;
+            return result;
+        }
+
+        function getShens(gan, zhi, dGan, yZhi, dZhi) {
+            const shens = [];
+            const ganBase = {
+                '甲': { '天乙': ['丑', '未'], '羊刃': '卯', '文昌': '巳' }, '乙': { '天乙': ['子', '申'], '羊刃': '辰', '文昌': '午' },
+                '丙': { '天乙': ['亥', '酉'], '羊刃': '午', '文昌': '申' }, '丁': { '天乙': ['亥', '酉'], '羊刃': '未', '文昌': '酉' },
+                '戊': { '天乙': ['丑', '未'], '羊刃': '午', '文昌': '申' }, '己': { '天乙': ['子', '申'], '羊刃': '未', '文昌': '酉' },
+                '庚': { '天乙': ['丑', '未'], '羊刃': '酉', '文昌': '亥' }, '辛': { '天乙': ['寅', '午'], '羊刃': '戌', '文昌': '子' },
+                '壬': { '天乙': ['卯', '巳'], '羊刃': '子', '文昌': '寅' }, '癸': { '天乙': ['卯', '巳'], '羊刃': '丑', '文昌': '卯' }
+            };
+            const zhiBase = {
+                '桃花': { '寅': '卯', '午': '卯', '戌': '卯', '申': '酉', '子': '酉', '辰': '酉', '巳': '午', '酉': '午', '丑': '午', '亥': '子', '卯': '子', '未': '子' },
+                '驿马': { '寅': '申', '午': '申', '戌': '申', '申': '寅', '子': '寅', '辰': '寅', '巳': '亥', '酉': '亥', '丑': '亥', '亥': '巳', '卯': '巳', '未': '巳' },
+                '华盖': { '寅': '戌', '午': '戌', '戌': '戌', '申': '辰', '子': '辰', '辰': '辰', '巳': '丑', '酉': '丑', '丑': '丑', '亥': '未', '卯': '未', '未': '未' }
+            };
+            if (ganBase[dGan].天乙.includes(zhi)) shens.push('天乙贵人');
+            if (ganBase[dGan].羊刃 === zhi) shens.push('羊刃');
+            if (ganBase[dGan].文昌 === zhi) shens.push('文昌');
+            if (zhiBase.桃花[yZhi] === zhi || zhiBase.桃花[dZhi] === zhi) shens.push('桃花');
+            if (zhiBase.驿马[yZhi] === zhi || zhiBase.驿马[dZhi] === zhi) shens.push('驿马');
+            if (zhiBase.华盖[yZhi] === zhi || zhiBase.华盖[dZhi] === zhi) shens.push('华盖');
+            return shens;
+        }
 
         const CITY_DATA = { "北京市": {"北京市": [116.40, 39.90]}, "上海市": {"上海市": [121.47, 31.23]}, "天津市": {"天津市": [117.20, 39.12]}, "重庆市": {"重庆市": [106.50, 29.53]}, "广东省": {"广州市": [113.23, 23.16], "深圳市": [114.07, 22.62], "珠海市": [113.52, 22.30], "东莞市": [113.75, 23.04], "中山市": [113.38, 22.52]}, "浙江省": {"杭州市": [120.19, 30.26], "宁波市": [121.56, 29.86], "温州市": [120.67, 28.00]}, "江苏省": {"南京市": [118.78, 32.04], "苏州市": [120.62, 31.32], "无锡市": [120.29, 31.59]}, "四川省": {"成都市": [104.06, 30.67]}, "吉林省": {"通化市": [125.93, 41.73]} };
 
@@ -285,6 +320,29 @@
                     cSol = Solar.fromYmdHms(cD.getFullYear(), cD.getMonth()+1, cD.getDate(), cD.getHours(), cD.getMinutes(), 0);
                 }
                 const lunar = Lunar.fromSolar(cSol), baZi = lunar.getEightChar();
+                const yun = baZi.getYun(gen === '1' ? 1 : 0);
+                const startSolar = yun.getStartSolar();
+                const dayuns = yun.getDaYun();
+                const wxStats = getWuXingStats(baZi);
+                const taiYuan = baZi.getTaiYuan();
+                const mingGong = baZi.getMingGong();
+                const shenGong = baZi.getShenGong();
+                const dayKong = baZi.getDayXunKong();
+                const yearKong = baZi.getYearXunKong();
+
+                const shensN = getShens(baZi.getYearGan(), baZi.getYearZhi(), baZi.getDayGan(), baZi.getYearZhi(), baZi.getDayZhi());
+                const shensY = getShens(baZi.getMonthGan(), baZi.getMonthZhi(), baZi.getDayGan(), baZi.getYearZhi(), baZi.getDayZhi());
+                const shensR = getShens(baZi.getDayGan(), baZi.getDayZhi(), baZi.getDayGan(), baZi.getYearZhi(), baZi.getDayZhi());
+                const shensS = unk ? [] : getShens(baZi.getTimeGan(), baZi.getTimeZhi(), baZi.getDayGan(), baZi.getYearZhi(), baZi.getDayZhi());
+
+                const mgBranch = mingGong[1];
+                const mgIdx = BRANCHES.indexOf(mgBranch);
+                const palaceMap = {};
+                for (let i = 0; i < 12; i++) {
+                    const branchIdx = (mgIdx - i + 12) % 12;
+                    palaceMap[BRANCHES[branchIdx]] = PALACES[i];
+                }
+
                 const asc = unk ? "?" : getAscendant(cSol.getYear(), cSol.getMonth(), cSol.getDay(), cSol.getHour(), cSol.getMinute(), lng, lat);
 
                 if (!unk) {
@@ -299,11 +357,23 @@
                 BRANCHES.forEach((branch, index) => {
                     const cell = document.getElementById(`pos-${index}`);
                     const isT = !unk && baZi.getTimeZhi() === branch, isY = baZi.getYearZhi() === branch;
-                    cell.innerHTML = `<div class="flex justify-between items-start"><span class="text-base font-bold ${getWuXingClass(branch)}">${branch}</span><div class="flex flex-col items-end">${isT?'<span class="bg-red-700 text-white text-[7px] px-0.5 rounded">时</span>':''}${isY?'<span class="bg-yellow-700 text-white text-[7px] px-0.5 rounded">年</span>':''}</div></div><div class="text-[8px] text-yellow-900 opacity-20 text-right">${branch}宫</div>`;
+                    const pName = palaceMap[branch];
+                    cell.innerHTML = `<div class="flex justify-between items-start"><span class="text-base font-bold ${getWuXingClass(branch)}">${branch}</span><div class="flex flex-col items-end">${isT?'<span class="bg-red-700 text-white text-[7px] px-0.5 rounded">时</span>':''}${isY?'<span class="bg-yellow-700 text-white text-[7px] px-0.5 rounded">年</span>':''}</div></div><div class="text-[9px] md:text-[10px] text-yellow-900 text-right mt-auto">${pName}</div>`;
                     cell.style.backgroundColor = isT ? "rgba(254, 243, 199, 0.8)" : "";
+                    if (pName === '命宫') cell.classList.add('ring-1', 'ring-red-300');
+                    else cell.classList.remove('ring-1', 'ring-red-300');
                 });
 
-                const mdText = `### 问天星算排盘报告\n\n- **公历**: ${cSol.toYmd()} ${unk ? '不详' : String(cSol.getHour()).padStart(2, '0')+':'+String(cSol.getMinute()).padStart(2, '0')}\n- **地点**: ${prov}-${city} (${lng}, ${lat})\n- **农历**: ${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()}\n- **${unk?'六字':'八字'}**: ${baZi.getYearGan()}${baZi.getYearZhi()}年 ${baZi.getMonthGan()}${baZi.getMonthZhi()}月 ${baZi.getDayGan()}${baZi.getDayZhi()}日${unk?'':' '+baZi.getTimeGan()+baZi.getTimeZhi()+'时'}\n- **太阳星座**: ${cSol.getXingZuo()}座 / **上升星座**: ${asc}座\n- **真太阳时修正**: ${off.total.toFixed(2)} 分钟\n- **性别**: ${gen==='1'?'男':'女'} / **生肖**: ${lunar.getYearShengXiao()} (${lunar.getYearNaYin()})\n\n#### 生辰八字 (${unk?'六字' : '八字'})\n| 四柱 | 年柱 | 月柱 | 日柱 | 时柱 |\n| :--- | :--- | :--- | :--- | :--- |\n| **十神** | ${baZi.getYearShiShenGan()} | ${baZi.getMonthShiShenGan()} | 日主 | ${unk?'?':baZi.getTimeShiShenGan()} |\n| **干支** | ${baZi.getYearGan()}${baZi.getYearZhi()} | ${baZi.getMonthGan()}${baZi.getMonthZhi()} | ${baZi.getDayGan()}${baZi.getDayZhi()} | ${unk?'??':baZi.getTimeGan()+baZi.getTimeZhi()} |\n| **地势** | ${baZi.getYearShiShenZhi()[0]} | ${baZi.getMonthShiShenZhi()[0]} | ${baZi.getDayShiShenZhi()[0]} | ${unk?'?':baZi.getTimeShiShenZhi()[0]} |\n| **纳音** | ${lunar.getYearNaYin()} | ${lunar.getMonthNaYin()} | ${lunar.getDayNaYin()} | ${unk?'?':lunar.getTimeNaYin()} |\n| **藏干** | ${baZi.getYearHideGan().join('')} | ${baZi.getMonthHideGan().join('')} | ${baZi.getDayHideGan().join('')} | ${unk?'?':baZi.getTimeHideGan().join('')} |\n\n---\n*报告由问天星算生成，${useSolar?'已应用真太阳时修正':'未应用修正'}*`;
+                let mdText = `### 问天星算排盘报告\n\n- **公历**: ${cSol.toYmd()} ${unk ? '不详' : String(cSol.getHour()).padStart(2, '0')+':'+String(cSol.getMinute()).padStart(2, '0')}\n- **地点**: ${prov}-${city} (${lng}, ${lat})\n- **农历**: ${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()}\n- **${unk?'六字':'八字'}**: ${baZi.getYearGan()}${baZi.getYearZhi()}年 ${baZi.getMonthGan()}${baZi.getMonthZhi()}月 ${baZi.getDayGan()}${baZi.getDayZhi()}日${unk?'':' '+baZi.getTimeGan()+baZi.getTimeZhi()+'时'}\n- **太阳星座**: ${cSol.getXingZuo()}座 / **上升星座**: ${asc}座\n- **真太阳时修正**: ${off.total.toFixed(2)} 分钟\n- **性别**: ${gen==='1'?'男':'女'} / **生肖**: ${lunar.getYearShengXiao()} (${lunar.getYearNaYin()})\n\n#### 生辰八字 (${unk?'六字' : '八字'})\n| 四柱 | 年柱 | 月柱 | 日柱 | 时柱 |\n| :--- | :--- | :--- | :--- | :--- |\n| **十神** | ${baZi.getYearShiShenGan()} | ${baZi.getMonthShiShenGan()} | 日主 | ${unk?'?':baZi.getTimeShiShenGan()} |\n| **干支** | ${baZi.getYearGan()}${baZi.getYearZhi()} | ${baZi.getMonthGan()}${baZi.getMonthZhi()} | ${baZi.getDayGan()}${baZi.getDayZhi()} | ${unk?'??':baZi.getTimeGan()+baZi.getTimeZhi()} |\n| **地势** | ${baZi.getYearShiShenZhi()[0]} | ${baZi.getMonthShiShenZhi()[0]} | ${baZi.getDayShiShenZhi()[0]} | ${unk?'?':baZi.getTimeShiShenZhi()[0]} |\n| **纳音** | ${lunar.getYearNaYin()} | ${lunar.getMonthNaYin()} | ${lunar.getDayNaYin()} | ${unk?'?':lunar.getTimeNaYin()} |\n| **藏干** | ${baZi.getYearHideGan().join('')} | ${baZi.getMonthHideGan().join('')} | ${baZi.getDayHideGan().join('')} | ${unk?'?':baZi.getTimeHideGan().join('')} |\n\n### 📊 命局五行与基础参数\n- **五行统计**：${wxStats}\n- **空亡**：日空[${dayKong}] | 年空[${yearKong}]\n- **三垣**：胎元[${taiYuan}] | 命宫[${mingGong}] | 身宫[${shenGong}]\n\n### 🌟 四柱神煞 (解盘关键取象)\n- **年柱** (${baZi.getYearGan()}${baZi.getYearZhi()}): [${shensN.join(', ') || '无'}]\n- **月柱** (${baZi.getMonthGan()}${baZi.getMonthZhi()}): [${shensY.join(', ') || '无'}]\n- **日柱** (${baZi.getDayGan()}${baZi.getDayZhi()}): [${shensR.join(', ') || '无'}]\n- **时柱** (${unk?'??' : baZi.getTimeGan()+baZi.getTimeZhi()}): [${shensS.join(', ') || '无'}]\n\n### ⏳ 命运轨迹 (大运走势)\n**交运时间**: 出生后 ${yun.getStartYear()} 年 ${yun.getStartMonth()} 个月 ${yun.getStartDay()} 天交运 (公历 ${startSolar.toYmd()} 起运)\n| 步数 | 虚岁 | 起运年份 | 大运干支 |\n| --- | --- | --- | --- |\n`;
+                
+                dayuns.slice(1, 9).forEach((dy, i) => {
+                    mdText += `| ${i+1} | ${dy.getStartAge()}岁 | ${dy.getStartYear()} | ${dy.getGanZhi()} |\n`;
+                });
+
+                mdText += `\n### 🌌 十二宫位分布\n`;
+                const pList = BRANCHES.map(b => `- **${b}宫**: ${palaceMap[b]}宫`).join(' | ');
+                mdText += pList + `\n\n---\n*报告由问天星算生成，${useSolar?'已应用真太阳时修正':'未应用修正'}*`;
+
                 document.getElementById('mdOutput').value = mdText;
             } catch (e) { console.error(e); }
         }

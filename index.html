@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>玄学命理排盘系统 - 灵犀本地版</title>
+    <title>问天星算 - 专业命理排盘</title>
     <link rel="stylesheet" href="tailwind.min.css">
     <script src="lunar.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
@@ -15,15 +15,12 @@
         .palace-cell:hover { background-color: #E9E9D0; }
         .color-wood { color: #2D5A27; } .color-fire { color: #C04851; } .color-earth { color: #8B7042; } .color-metal { color: #9D9087; } .color-water { color: #1A1A1A; }
         .pillar-highlight { border-bottom: 2px solid #C04851; }
-        
-        /* Tooltip 基础样式：通过绝对定位和 Z-INDEX 确保不透明 */
         [data-tip] { position: relative; cursor: help; }
         [data-tip]:hover::after {
             content: attr(data-tip); position: absolute; bottom: 125%; left: 50%; transform: translateX(-50%);
             padding: 6px 10px; background-color: #FFFDE7 !important; color: #5D4037 !important; font-size: 10px; white-space: pre-wrap;
             width: 150px; border: 1px solid #8B4513; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            z-index: 9999; line-height: 1.5; font-weight: normal; opacity: 1 !important; visibility: visible;
-            text-align: left; /* 左对齐 */
+            z-index: 9999; line-height: 1.5; font-weight: normal; opacity: 1 !important; visibility: visible; text-align: left;
         }
         @media (max-width: 768px) { .palace-grid { display: flex; flex-direction: column; } .center-info { order: -1; margin-bottom: 0.5rem; } .palace-cell { min-height: 60px; } }
     </style>
@@ -31,7 +28,7 @@
 <body class="p-2 md:p-4 h-screen overflow-hidden flex flex-col">
     <div class="max-w-6xl mx-auto flex-grow flex flex-col w-full">
         <header class="text-center mb-2">
-            <h1 class="text-2xl font-bold text-yellow-900">灵犀命理排盘</h1>
+            <h1 class="text-2xl font-bold text-yellow-900">问天星算</h1>
         </header>
 
         <!-- 输入模块 -->
@@ -135,7 +132,7 @@
 
         const CITY_DATA = {
             "北京市": {"北京市": [116.40, 39.90]}, "上海市": {"上海市": [121.47, 31.23]}, "天津市": {"天津市": [117.20, 39.12]}, "重庆市": {"重庆市": [106.50, 29.53]},
-            "广东省": {"广州市": [113.23, 23.16], "深圳市": [114.07, 22.62], "珠海市": [113.52, 22.30], "汕头市": [116.69, 23.39], "佛山市": [113.11, 23.02], "江门市": [113.06, 22.58], "湛江市": [110.36, 21.27], "茂名市": [110.91, 21.66], "肇庆市": [112.44, 23.05], "清远市": [113.01, 23.70], "潮州市": [116.63, 23.66], "揭阳市": [116.35, 23.55], "云浮市": [112.04, 22.91]},
+            "广东省": {"广州市": [113.23, 23.16], "深圳市": [114.07, 22.62], "珠海市": [113.52, 22.30], "汕头市": [116.69, 23.39], "佛山市": [113.11, 23.02], "江门市": [113.06, 22.58], "湛江市": [110.36, 21.27], "茂名市": [110.91, 21.66], "肇庆市": [112.44, 23.05], "清远市": [113.01, 23.70], "东莞市": [113.75, 23.04], "中山市": [113.38, 22.52]},
             "浙江省": {"杭州市": [120.19, 30.26], "宁波市": [121.56, 29.86], "温州市": [120.67, 28.00], "绍兴市": [120.58, 30.01], "金华市": [119.64, 29.08]},
             "江苏省": {"南京市": [118.78, 32.04], "无锡市": [120.29, 31.59], "徐州市": [117.20, 34.26], "常州市": [119.95, 31.79], "苏州市": [120.62, 31.32], "南通市": [120.86, 32.01]},
             "山东省": {"济南市": [117.00, 36.65], "青岛市": [120.33, 36.07], "烟台市": [121.39, 37.52], "潍坊市": [119.10, 36.62]},
@@ -304,7 +301,22 @@
                     cell.style.backgroundColor = isTimeZhi ? "rgba(254, 243, 199, 0.8)" : "";
                 });
 
-                const mdText = `### 灵犀命理排盘报告\n\n- **公历**: ${calcSolar.toYmd()} ${unk ? '不详' : String(calcSolar.getHour()).padStart(2, '0')+':'+String(calcSolar.getMinute()).padStart(2, '0')}\n- **地点**: ${prov}-${city} (${lng}, ${lat})\n- **农历**: ${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()}\n- **${unk?'六字':'八字'}**: ${baZi.getYearGan()}${baZi.getYearZhi()}年 ${baZi.getMonthGan()}${baZi.getMonthZhi()}月 ${baZi.getDayGan()}${baZi.getDayZhi()}日${unk?'':' '+baZi.getTimeGan()+baZi.getTimeZhi()+'时'}\n- **太阳星座**: ${calcSolar.getXingZuo()}座 / **上升星座**: ${ascendant}座\n- **真太阳时修正**: ${off.total.toFixed(2)} 分钟\n- **性别**: ${gen==='1'?'男':'女'} / **生肖**: ${lunar.getYearShengXiao()} (${lunar.getYearNaYin()})\n\n#### 生辰八字 (${unk?'六字':'八字'})\n| 四柱 | 年柱 | 月柱 | 日柱 | 时柱 |\n| :--- | :--- | :--- | :--- | :--- |\n| **十神** | ${baZi.getYearShiShenGan()} | ${baZi.getMonthShiShenGan()} | 日主 | ${unk?'?':baZi.getTimeShiShenGan()} |\n| **干支** | ${baZi.getYearGan()}${baZi.getYearZhi()} | ${baZi.getMonthGan()}${baZi.getMonthZhi()} | ${baZi.getDayGan()}${baZi.getDayZhi()} | ${unk?'??':baZi.getTimeGan()+baZi.getTimeZhi()} |\n| **地势** | ${baZi.getYearShiShenZhi()[0]} | ${baZi.getMonthShiShenZhi()[0]} | ${baZi.getDayShiShenZhi()[0]} | ${unk?'?':baZi.getTimeShiShenZhi()[0]} |\n| **纳音** | ${lunar.getYearNaYin()} | ${lunar.getMonthNaYin()} | ${lunar.getDayNaYin()} | ${unk?'?':lunar.getTimeNaYin()} |\n| **藏干** | ${baZi.getYearHideGan().join('')} | ${baZi.getMonthHideGan().join('')} | ${baZi.getDayHideGan().join('')} | ${unk?'?':baZi.getTimeHideGan().join('')} |\n\n---\n*报告由灵犀排盘生成，${useSolar?'已应用真太阳时修正':'未应用修正'}*`;
+                const mdText = `### 问天星算排盘报告\n\n` +
+                    `- **公历**: ${calcSolar.toYmd()} ${unk ? '不详' : String(calcSolar.getHour()).padStart(2, '0')+':'+String(calcSolar.getMinute()).padStart(2, '0')}\n` +
+                    `- **地点**: ${prov}-${city} (${lng}, ${lat})\n` +
+                    `- **农历**: ${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()}\n` +
+                    `- **${unk?'六字':'八字'}**: ${baZi.getYearGan()}${baZi.getYearZhi()}年 ${baZi.getMonthGan()}${baZi.getMonthZhi()}月 ${baZi.getDayGan()}${baZi.getDayZhi()}日${unk?'':' '+baZi.getTimeGan()+baZi.getTimeZhi()+'时'}\n` +
+                    `- **太阳星座**: ${calcSolar.getXingZuo()}座 / **上升星座**: ${ascendant}座\n` +
+                    `- **真太阳时修正**: ${off.total.toFixed(2)} 分钟\n` +
+                    `- **性别**: ${gen==='1'?'男':'女'} / **生肖**: ${lunar.getYearShengXiao()} (${lunar.getYearNaYin()})\n\n` +
+                    `#### 生辰八字 (${unk?'六字' : '八字'})\n` +
+                    `| 四柱 | 年柱 | 月柱 | 日柱 | 时柱 |\n| :--- | :--- | :--- | :--- | :--- |\n` +
+                    `| **十神** | ${baZi.getYearShiShenGan()} | ${baZi.getMonthShiShenGan()} | 日主 | ${unk?'?':baZi.getTimeShiShenGan()} |\n` +
+                    `| **干支** | ${baZi.getYearGan()}${baZi.getYearZhi()} | ${baZi.getMonthGan()}${baZi.getMonthZhi()} | ${baZi.getDayGan()}${baZi.getDayZhi()} | ${unk?'??':baZi.getTimeGan()+baZi.getTimeZhi()} |\n` +
+                    `| **地势** | ${baZi.getYearShiShenZhi()[0]} | ${baZi.getMonthShiShenZhi()[0]} | ${baZi.getDayShiShenZhi()[0]} | ${unk?'?':baZi.getTimeShiShenZhi()[0]} |\n` +
+                    `| **纳音** | ${lunar.getYearNaYin()} | ${lunar.getMonthNaYin()} | ${lunar.getDayNaYin()} | ${unk?'?':lunar.getTimeNaYin()} |\n` +
+                    `| **藏干** | ${baZi.getYearHideGan().join('')} | ${baZi.getMonthHideGan().join('')} | ${baZi.getDayHideGan().join('')} | ${unk?'?':baZi.getTimeHideGan().join('')} |\n\n` +
+                    `---\n*报告由问天星算生成，${useSolar?'已应用真太阳时修正':'未应用修正'}*`;
                 document.getElementById('mdOutput').value = mdText;
             } catch (e) { console.error(e); }
         }

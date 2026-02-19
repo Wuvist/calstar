@@ -176,13 +176,17 @@
 
         function getWuXingClass(char) { return `color-${WUXING[char] || 'metal'}`; }
 
-        function renderPillar(title, gan, zhi, hideGan, isDayMaster = false) {
+        function renderPillar(title, gan, zhi, hideGan, shiShenGan, shiShenZhi, isDayMaster = false) {
             return `
                 <div class="flex flex-col items-center ${isDayMaster ? 'pillar-highlight' : ''}">
+                    <span class="text-[9px] text-red-700 font-bold mb-0.5">${shiShenGan || ''}</span>
                     <span class="text-[10px] text-yellow-800">${title}</span>
                     <span class="text-xl font-bold ${getWuXingClass(gan)}">${gan}</span>
                     <span class="text-xl font-bold ${getWuXingClass(zhi)}">${zhi}</span>
-                    <span class="text-[9px] opacity-40">${hideGan || ''}</span>
+                    <div class="flex flex-col items-center leading-none mt-0.5">
+                        <span class="text-[9px] opacity-40">${hideGan || ''}</span>
+                        <span class="text-[8px] text-red-800 opacity-60 scale-90">${shiShenZhi || ''}</span>
+                    </div>
                 </div>
             `;
         }
@@ -215,10 +219,10 @@
                 `;
 
                 document.getElementById('baziDisplay').innerHTML = `
-                    ${renderPillar('年', baZi.getYearGan(), baZi.getYearZhi(), baZi.getYearHideGan().join(''))}
-                    ${renderPillar('月', baZi.getMonthGan(), baZi.getMonthZhi(), baZi.getMonthHideGan().join(''))}
-                    ${renderPillar('日', baZi.getDayGan(), baZi.getDayZhi(), baZi.getDayHideGan().join(''), true)}
-                    ${renderPillar('时', baZi.getTimeGan(), baZi.getTimeZhi(), baZi.getTimeHideGan().join(''))}
+                    ${renderPillar('年', baZi.getYearGan(), baZi.getYearZhi(), baZi.getYearHideGan().join(''), baZi.getYearShiShenGan(), baZi.getYearShiShenZhi()[0])}
+                    ${renderPillar('月', baZi.getMonthGan(), baZi.getMonthZhi(), baZi.getMonthHideGan().join(''), baZi.getMonthShiShenGan(), baZi.getMonthShiShenZhi()[0])}
+                    ${renderPillar('日', baZi.getDayGan(), baZi.getDayZhi(), baZi.getDayHideGan().join(''), '日主', baZi.getDayShiShenZhi()[0], true)}
+                    ${renderPillar('时', baZi.getTimeGan(), baZi.getTimeZhi(), baZi.getTimeHideGan().join(''), baZi.getTimeShiShenGan(), baZi.getTimeShiShenZhi()[0])}
                 `;
 
                 BRANCHES.forEach((branch, index) => {
@@ -242,7 +246,9 @@
                     `- **星座**: ${solar.getXingZuo()}座\n\n` +
                     `#### 生辰八字\n` +
                     `| 四柱 | 年柱 | 月柱 | 日柱 | 时柱 |\n| :--- | :--- | :--- | :--- | :--- |\n` +
+                    `| **十神** | ${baZi.getYearShiShenGan()} | ${baZi.getMonthShiShenGan()} | 日主 | ${baZi.getTimeShiShenGan()} |\n` +
                     `| **干支** | ${baZi.getYearGan()}${baZi.getYearZhi()} | ${baZi.getMonthGan()}${baZi.getMonthZhi()} | ${baZi.getDayGan()}${baZi.getDayZhi()} | ${baZi.getTimeGan()}${baZi.getTimeZhi()} |\n` +
+                    `| **地势** | ${baZi.getYearShiShenZhi()[0]} | ${baZi.getMonthShiShenZhi()[0]} | ${baZi.getDayShiShenZhi()[0]} | ${baZi.getTimeShiShenZhi()[0]} |\n` +
                     `| **纳音** | ${lunar.getYearNaYin()} | ${lunar.getMonthNaYin()} | ${lunar.getDayNaYin()} | ${lunar.getTimeNaYin()} |\n` +
                     `| **藏干** | ${baZi.getYearHideGan().join('')} | ${baZi.getMonthHideGan().join('')} | ${baZi.getDayHideGan().join('')} | ${baZi.getTimeHideGan().join('')} |\n\n` +
                     `---\n*本报告由灵犀排盘生成*`;

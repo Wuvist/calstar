@@ -57,7 +57,13 @@
         <section class="bg-white bg-opacity-50 p-3 rounded-lg shadow-sm border border-yellow-200 mb-4 shrink-0">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3 items-end">
                 <div class="col-span-1">
-                    <label class="block text-[10px] font-bold text-yellow-900 mb-0.5">公历日期</label>
+                    <div class="flex justify-between items-center mb-0.5">
+                        <label class="block text-[10px] font-bold text-yellow-900">日期</label>
+                        <select id="calendarType" class="text-[9px] bg-transparent border-none focus:outline-none cursor-pointer text-yellow-700">
+                            <option value="solar">公历</option>
+                            <option value="lunar">农历</option>
+                        </select>
+                    </div>
                     <div class="flex items-center space-x-0.5 border-b border-yellow-900">
                         <select id="inputYear" class="bg-transparent text-xs focus:outline-none appearance-none cursor-pointer flex-grow text-center"></select>
                         <span class="text-yellow-900">-</span>
@@ -91,17 +97,14 @@
                 </div>
             </div>
             
-            <!-- 12 时辰快速选择 -->
-            <div id="shichenGrid" class="flex flex-wrap gap-1 mt-2 border-t border-yellow-100 pt-2">
-                <!-- 子丑寅卯按钮由 JS 生成 -->
-            </div>
+            <div id="shichenGrid" class="flex flex-wrap gap-1 mt-2 border-t border-yellow-100 pt-2"></div>
 
-            <!-- 地点选择与真太阳时修正 -->
             <div class="flex flex-wrap items-center gap-3 mt-2 border-t border-yellow-100 pt-2">
                 <div class="flex items-center space-x-1">
                     <label class="text-[10px] font-bold text-yellow-900">出生地</label>
                     <select id="provinceSel" class="bg-transparent text-[10px] border-b border-yellow-900 focus:outline-none cursor-pointer"></select>
                     <select id="citySel" class="bg-transparent text-[10px] border-b border-yellow-900 focus:outline-none cursor-pointer"></select>
+                    <span id="lngDisplay" class="text-[9px] text-yellow-700 opacity-60 ml-1"></span>
                 </div>
                 <div class="flex items-center space-x-1 ml-auto">
                     <label class="flex items-center text-[10px] cursor-pointer text-red-900 font-bold">
@@ -113,13 +116,11 @@
 
         <!-- 主体区域 -->
         <div class="flex flex-row gap-4 flex-grow overflow-hidden">
-            <!-- 左侧排盘 -->
             <div class="flex-grow grid grid-cols-4 grid-rows-4 gap-1 md:gap-2">
                 <div id="pos-5" class="palace-cell chinese-border p-1.5 flex flex-col justify-between bg-white bg-opacity-30"></div>
                 <div id="pos-6" class="palace-cell chinese-border p-1.5 flex flex-col justify-between bg-white bg-opacity-30"></div>
                 <div id="pos-7" class="palace-cell chinese-border p-1.5 flex flex-col justify-between bg-white bg-opacity-30"></div>
                 <div id="pos-8" class="palace-cell chinese-border p-1.5 flex flex-col justify-between bg-white bg-opacity-30"></div>
-
                 <div id="pos-4" class="palace-cell chinese-border p-1.5 flex flex-col justify-between bg-white bg-opacity-30"></div>
                 <div class="col-span-2 row-span-2 bg-white bg-opacity-80 chinese-border p-2 center-info flex flex-col items-center justify-center text-center">
                     <div id="basicInfo" class="space-y-0.5 w-full"></div>
@@ -127,17 +128,13 @@
                     <div id="baziDisplay" class="mt-2 flex space-x-1 md:space-x-2 border-t border-yellow-100 pt-2 w-full justify-around min-h-[60px]"></div>
                 </div>
                 <div id="pos-9" class="palace-cell chinese-border p-1.5 flex flex-col justify-between bg-white bg-opacity-30"></div>
-
                 <div id="pos-3" class="palace-cell chinese-border p-1.5 flex flex-col justify-between bg-white bg-opacity-30"></div>
                 <div id="pos-10" class="palace-cell chinese-border p-1.5 flex flex-col justify-between bg-white bg-opacity-30"></div>
-
                 <div id="pos-2" class="palace-cell chinese-border p-1.5 flex flex-col justify-between bg-white bg-opacity-30"></div>
                 <div id="pos-1" class="palace-cell chinese-border p-1.5 flex flex-col justify-between bg-white bg-opacity-30"></div>
                 <div id="pos-0" class="palace-cell chinese-border p-1.5 flex flex-col justify-between bg-white bg-opacity-30"></div>
                 <div id="pos-11" class="palace-cell chinese-border p-1.5 flex flex-col justify-between bg-white bg-opacity-30"></div>
             </div>
-
-            <!-- 右侧 Markdown 导出 -->
             <div class="w-64 md:w-80 flex flex-col shrink-0 border-l border-yellow-200 pl-4 h-full">
                 <label class="text-[10px] font-bold text-yellow-900 mb-1">Markdown 报告</label>
                 <textarea id="mdOutput" readonly class="flex-grow bg-white bg-opacity-50 border border-yellow-200 rounded p-3 text-[10px] font-mono focus:outline-none resize-none leading-relaxed" placeholder="排盘数据生成中..."></textarea>
@@ -147,283 +144,148 @@
     </div>
 
     <script>
-        const WUXING = {
-            '甲': 'wood', '乙': 'wood', '寅': 'wood', '卯': 'wood',
-            '丙': 'fire', '丁': 'fire', '巳': 'fire', '午': 'fire',
-            '戊': 'earth', '己': 'earth', '辰': 'earth', '戌': 'earth', '丑': 'earth', '未': 'earth',
-            '庚': 'metal', '辛': 'metal', '申': 'metal', '酉': 'metal',
-            '壬': 'water', '癸': 'water', '亥': 'water', '子': 'water'
-        };
+        const WUXING = { '甲': 'wood', '乙': 'wood', '寅': 'wood', '卯': 'wood', '丙': 'fire', '丁': 'fire', '巳': 'fire', '午': 'fire', '戊': 'earth', '己': 'earth', '辰': 'earth', '戌': 'earth', '丑': 'earth', '未': 'earth', '庚': 'metal', '辛': 'metal', '申': 'metal', '酉': 'metal', '壬': 'water', '癸': 'water', '亥': 'water', '子': 'water' };
         const BRANCHES = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
+        const LUNAR_MONTHS = ["正月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "冬月", "腊月"];
+        const LUNAR_DAYS = ["初一", "初二", "初三", "初四", "初五", "初六", "初七", "初八", "初九", "初十", "十一", "十二", "十三", "十四", "十五", "十六", "十七", "十八", "十九", "二十", "廿一", "廿二", "廿三", "廿四", "廿五", "廿六", "廿七", "廿八", "廿九", "三十"];
 
-        // 中国主要城市经度数据
-        const CITY_DATA = {
-            "北京市": {"北京市": 116.40},
-            "上海市": {"上海市": 121.47},
-            "天津市": {"天津市": 117.20},
-            "重庆市": {"重庆市": 106.50},
-            "广东省": {"广州市": 113.23, "深圳市": 114.07, "珠海市": 113.52, "汕头市": 116.69, "佛山市": 113.11, "东莞市": 113.75},
-            "浙江省": {"杭州市": 120.19, "宁波市": 121.56, "温州市": 120.67, "嘉兴市": 120.76, "金华市": 119.64},
-            "江苏省": {"南京市": 118.78, "苏州市": 120.62, "无锡市": 120.29, "徐州市": 117.20, "常州市": 119.95},
-            "福建省": {"福州市": 119.30, "厦门市": 118.10, "泉州市": 118.58},
-            "山东省": {"济南市": 117.00, "青岛市": 120.33, "烟台市": 121.39, "潍坊市": 119.10},
-            "河南省": {"郑州市": 113.65, "洛阳市": 112.44, "开封市": 114.35},
-            "湖北省": {"武汉市": 114.31, "宜昌市": 111.29},
-            "湖南省": {"长沙市": 113.00, "衡阳市": 112.61},
-            "四川省": {"成都市": 104.06, "绵阳市": 104.73},
-            "陕西省": {"西安市": 108.95},
-            "河北省": {"石家庄市": 114.48, "唐山市": 118.18},
-            "山西省": {"太原市": 112.53},
-            "辽宁省": {"沈阳市": 123.43, "大连市": 121.62},
-            "吉林省": {"长春市": 125.35},
-            "黑龙江省": {"哈尔滨市": 126.63},
-            "安徽省": {"合肥市": 117.27},
-            "江西省": {"南昌市": 115.89},
-            "云南省": {"昆明市": 102.73},
-            "贵州省": {"贵阳市": 106.71},
-            "海南省": {"海口市": 110.35, "三亚市": 109.51},
-            "甘肃省": {"兰州市": 103.73},
-            "青海省": {"西宁市": 101.74},
-            "内蒙古": {"呼和浩特": 111.65, "包头市": 109.81},
-            "广西": {"南宁市": 108.33, "桂林市": 110.28},
-            "西藏": {"拉萨市": 91.11},
-            "宁夏": {"银川市": 106.27},
-            "新疆": {"乌鲁木齐": 87.68, "喀什市": 75.99}
-        };
+        const CITY_DATA = { "北京市": {"北京市": 116.40}, "上海市": {"上海市": 121.47}, "天津市": {"天津市": 117.20}, "重庆市": {"重庆市": 106.50}, "广东省": {"广州市": 113.23, "深圳市": 114.07, "珠海市": 113.52, "汕头市": 116.69, "佛山市": 113.11, "江门市": 113.06, "湛江市": 110.36, "茂名市": 110.91, "肇庆市": 112.44, "惠州市": 114.41, "梅州市": 116.11, "汕尾市": 115.36, "河源市": 114.69, "阳江市": 111.97, "清远市": 113.01, "东莞市": 113.75, "中山市": 113.38, "潮州市": 116.63, "揭阳市": 116.35, "云浮市": 112.04}, "浙江省": {"杭州市": 120.19, "宁波市": 121.56, "温州市": 120.67, "嘉兴市": 120.76, "湖州市": 120.10, "绍兴市": 120.58, "金华市": 119.64, "衢州市": 118.87, "舟山市": 122.10, "台州市": 121.42, "丽水市": 119.92}, "江苏省": {"南京市": 118.78, "无锡市": 120.29, "徐州市": 117.20, "常州市": 119.95, "苏州市": 120.62, "南通市": 120.86, "连云港": 119.17, "淮安市": 119.02, "盐城市": 120.13, "扬州市": 119.42, "镇江市": 119.44, "泰州市": 119.90, "宿迁市": 118.27}, "山东省": {"济南市": 117.00, "青岛市": 120.33, "淄博市": 118.05, "枣庄市": 117.57, "东营市": 118.49, "烟台市": 121.39, "潍坊市": 119.10, "济宁市": 116.59, "泰安市": 117.13, "威海市": 122.11, "日照市": 119.46, "莱芜市": 117.67, "临沂市": 118.35, "德州市": 116.29, "聊城市": 115.97, "滨州市": 118.01, "菏泽市": 115.48}, "河南省": {"郑州市": 113.65, "开封市": 114.35, "洛阳市": 112.44, "平顶山": 113.30, "安阳市": 114.35, "鹤壁市": 114.17, "新乡市": 113.88, "焦作市": 113.21, "濮阳市": 115.03, "许昌市": 113.81, "漯河市": 114.05, "三门峡": 111.19, "南阳市": 112.53, "商丘市": 115.65, "信阳市": 114.07, "周口市": 114.63, "驻马店": 114.02}, "湖北省": {"武汉市": 114.31, "黄石市": 115.09, "十堰市": 110.79, "宜昌市": 111.29, "襄阳市": 112.14, "鄂州市": 114.89, "荆门市": 112.20, "孝感市": 113.92, "荆州市": 112.24, "黄冈市": 114.87, "咸宁市": 114.33, "随州市": 113.37, "恩施州": 109.48}, "湖南省": {"长沙市": 113.00, "株洲市": 113.16, "湘潭市": 112.91, "衡阳市": 112.61, "邵阳市": 111.46, "岳阳市": 113.13, "常德市": 111.69, "张家界": 110.48, "益阳市": 112.33, "郴州市": 113.03, "永州市": 111.63, "怀化市": 109.97, "娄底市": 112.00, "湘西州": 109.73}, "河北省": {"石家庄": 114.48, "唐山市": 118.18, "秦皇岛": 119.57, "邯郸市": 114.47, "邢台市": 114.48, "保定市": 115.48, "张口": 114.88, "承德市": 117.93, "沧州市": 116.85, "廊坊市": 116.70, "衡水市": 115.72}, "四川省": {"成都市": 104.06, "自贡市": 104.77, "攀枝花": 101.71, "泸州市": 105.42, "德阳市": 104.37, "绵阳市": 104.73, "广元市": 105.82, "遂宁市": 105.57, "内江市": 105.04, "乐山市": 103.76, "南充市": 106.08, "眉山市": 103.83, "宜宾市": 104.62, "广安市": 106.63, "达州市": 107.50, "雅安市": 103.00, "巴中市": 106.77, "资阳市": 104.65, "阿坝州": 102.22, "甘孜州": 101.96, "凉山州": 102.26}, "陕西省": {"西安市": 108.95, "铜川市": 108.93, "宝鸡市": 107.15, "咸阳市": 108.70, "渭南市": 109.50, "延安市": 109.47, "汉中市": 107.03, "榆林市": 109.73, "安康市": 109.02, "商洛市": 109.93}, "山西省": {"太原市": 112.53, "大同市": 113.30, "阳泉市": 113.57, "长治市": 113.11, "晋城市": 112.83, "朔州市": 112.43, "晋中市": 112.73, "运城市": 111.00, "忻州市": 112.73, "临汾市": 111.51, "吕梁市": 111.13}, "辽宁省": {"沈阳市": 123.43, "大连市": 121.62, "鞍山市": 122.99, "抚顺市": 123.97, "本溪市": 123.73, "丹东市": 124.37, "锦州市": 121.13, "营口市": 122.23, "阜新市": 121.65, "辽阳市": 123.17, "盘锦市": 122.07, "铁岭市": 123.83, "朝阳市": 120.45, "葫芦岛": 120.83}, "吉林省": {"长春市": 125.35, "吉林市": 126.57, "四平市": 124.37, "辽源市": 125.15, "通化市": 125.93, "白山市": 126.42, "松原市": 124.82, "白城市": 122.84, "延边州": 129.51}, "黑龙江省": {"哈尔滨": 126.63, "齐齐哈尔": 123.97, "鸡西市": 130.97, "鹤岗市": 130.27, "双鸭山": 131.33, "大庆市": 125.03, "伊春市": 128.90, "佳木斯": 130.37, "七台河": 131.01, "牡丹江": 129.61, "黑河市": 127.49, "绥化市": 126.98, "大兴安岭": 124.71}, "安徽省": {"合肥市": 117.27, "芜湖市": 118.38, "蚌埠市": 117.38, "淮南市": 117.00, "马鞍山": 118.51, "淮北市": 116.79, "铜陵市": 117.81, "安庆市": 117.05, "黄山市": 118.31, "滁州市": 118.31, "阜阳市": 115.81, "宿州市": 116.98, "六安市": 116.51, "亳州市": 115.78, "池州市": 117.48, "宣城市": 118.75}, "福建省": {"福州市": 119.30, "厦门市": 118.10, "莆田市": 119.00, "三明市": 117.61, "泉州市": 118.58, "漳州市": 117.66, "南平市": 118.17, "龙岩市": 117.02, "宁德市": 119.52}, "江西省": {"南昌市": 115.89, "景德镇": 117.22, "萍乡市": 113.85, "九江市": 115.97, "新余市": 114.93, "鹰潭市": 117.03, "赣州市": 114.94, "吉安市": 114.98, "宜春市": 114.38, "抚州市": 116.35, "上饶市": 117.97}, "云南省": {"昆明市": 102.73, "曲靖市": 103.79, "玉溪市": 102.54, "保山市": 99.16, "昭通市": 103.71, "丽江市": 100.23, "普洱市": 100.97, "临沧市": 100.08, "楚雄州": 101.54, "红河州": 103.37, "文山州": 104.24, "西双版纳": 100.80, "大理州": 100.24, "德宏州": 98.58, "怒江州": 98.85, "迪庆州": 99.70}, "贵州省": {"贵阳市": 106.71, "六盘水": 104.83, "遵义市": 106.90, "安顺市": 105.92, "毕节市": 105.28, "铜仁市": 109.19, "黔西南": 104.89, "黔东南": 107.97, "黔南州": 107.51}, "甘肃省": {"兰州市": 103.73, "嘉峪关": 98.27, "金昌市": 102.18, "白银市": 104.17, "天水市": 105.71, "武威市": 102.63, "张掖市": 100.45, "平凉市": 106.67, "酒泉市": 98.51, "庆阳市": 107.63, "定西市": 104.61, "陇南市": 104.91, "临夏州": 103.21, "甘南州": 102.91}, "海南省": {"海口市": 110.35, "三亚市": 109.51, "三沙市": 112.33, "儋州市": 109.57}, "青海省": {"西宁市": 101.74, "海东市": 102.10, "海北州": 100.90, "黄南州": 102.01, "海南州": 100.61, "果洛州": 100.24, "玉树州": 97.00, "海西州": 97.37}, "内蒙古": {"呼和浩特": 111.65, "包头市": 109.81, "乌海市": 106.82, "赤峰市": 118.96, "通辽市": 122.28, "鄂尔多斯": 109.99, "呼伦贝尔": 119.73, "巴彦淖尔": 107.41, "乌兰察布": 113.11, "兴安盟": 122.07, "锡林郭勒": 116.03, "阿拉善盟": 105.70}, "广西": {"南宁市": 108.33, "柳州市": 109.40, "桂林市": 110.28, "梧州市": 111.27, "北海市": 109.12, "防城港": 108.34, "钦州市": 108.62, "贵港市": 109.60, "玉林市": 110.14, "百色市": 106.61, "贺州市": 111.55, "河池市": 108.05, "来宾市": 109.22, "崇左市": 107.35}, "西藏": {"拉萨市": 91.11, "日喀则": 88.88, "昌都市": 97.17, "林芝市": 94.36, "山南市": 91.76, "那曲市": 92.05, "阿里地区": 80.10}, "宁夏": {"银川市": 106.27, "石嘴山": 106.39, "吴忠市": 106.21, "固原市": 106.28, "中卫市": 105.18}, "新疆": {"乌鲁木齐": 87.68, "克拉玛依": 84.87, "吐鲁番": 89.17, "哈密市": 93.51, "阿克苏": 80.26, "喀什地区": 75.99, "和田地区": 79.92, "昌吉州": 87.30, "博尔塔拉": 82.07, "巴音郭楞": 86.15, "克孜勒苏": 76.17, "伊犁州": 81.33, "塔城地区": 82.98, "阿勒泰": 88.13} };
 
-        // 计算均时差 (EOT) - 估算公式
-        function getEOT(dayOfYear) {
-            const b = (2 * Math.PI * (dayOfYear - 81)) / 365;
-            return 9.87 * Math.sin(2 * b) - 7.53 * Math.cos(b) - 1.5 * Math.sin(b);
-        }
-
-        // 计算总修正分钟数 (经度差 + 均时差)
-        function getSolarTimeOffset(longitude, year, month, day) {
-            // 经度修正: 每度 4 分钟
-            const longOffset = (longitude - 120.0) * 4;
-            
-            // 均时差修正
-            const date = new Date(year, month - 1, day);
-            const start = new Date(year, 0, 0);
-            const diff = date - start;
-            const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const eotOffset = getEOT(dayOfYear);
-            
-            return { total: longOffset + eotOffset, longOffset, eotOffset };
+        function getEOT(doy) { const b = (2 * Math.PI * (doy - 81)) / 365; return 9.87 * Math.sin(2 * b) - 7.53 * Math.cos(b) - 1.5 * Math.sin(b); }
+        function getSolarTimeOffset(lng, y, m, d) {
+            const longOff = (lng - 120.0) * 4;
+            const date = new Date(y, m - 1, d);
+            const start = new Date(y, 0, 0);
+            const doy = Math.floor((date - start) / 86400000);
+            const eotOff = getEOT(doy);
+            return { total: longOff + eotOff, longOff, eotOff };
         }
 
         window.onload = function() {
             const lastData = JSON.parse(localStorage.getItem('bazi_last_input')) || {};
             const now = new Date();
-            const defY = lastData.y || now.getFullYear();
-            const defM = lastData.m || now.getMonth() + 1;
-            const defD = lastData.d || now.getDate();
-            const defH = lastData.hh !== undefined ? lastData.hh : now.getHours();
-            const defMin = lastData.mm !== undefined ? lastData.mm : now.getMinutes();
-            const defGender = lastData.gender !== undefined ? lastData.gender : "1";
-            const defUnknown = lastData.unknown || false;
-            const defProvince = lastData.province || "北京市";
-            const defCity = lastData.city || "北京市";
-            const defUseSolar = lastData.useSolar || false;
+            const defY = lastData.y || now.getFullYear(), defM = lastData.m || (now.getMonth() + 1), defD = lastData.d || now.getDate();
+            const defH = lastData.hh !== undefined ? lastData.hh : now.getHours(), defMin = lastData.mm !== undefined ? lastData.mm : now.getMinutes();
+            const defGen = lastData.gender || "1", defUnk = lastData.unknown || false, defCal = lastData.cal || "solar";
+            const defProv = lastData.province || "北京市", defCity = lastData.city || "北京市", defUseSolar = lastData.useSolar || false;
 
-            const yearSel = document.getElementById('inputYear');
-            const monthSel = document.getElementById('inputMonth');
-            const daySel = document.getElementById('inputDay');
-            const hourSel = document.getElementById('inputHour');
-            const minSel = document.getElementById('inputMin');
-            const unknownCheck = document.getElementById('timeUnknown');
-            const provinceSel = document.getElementById('provinceSel');
-            const citySel = document.getElementById('citySel');
-            const solarCheck = document.getElementById('useSolarTime');
+            const yearSel = document.getElementById('inputYear'), monthSel = document.getElementById('inputMonth'), daySel = document.getElementById('inputDay');
+            const hourSel = document.getElementById('inputHour'), minSel = document.getElementById('inputMin'), calType = document.getElementById('calendarType');
+            const unkCheck = document.getElementById('timeUnknown'), provSel = document.getElementById('provinceSel'), citySel = document.getElementById('citySel'), solarCheck = document.getElementById('useSolarTime');
 
             for(let i=1900; i<=2100; i++) yearSel.add(new Option(i + '年', i, i===defY, i===defY));
-            for(let i=1; i<=12; i++) monthSel.add(new Option(String(i).padStart(2, '0') + '月', i, i===defM, i===defM));
             for(let i=0; i<24; i++) hourSel.add(new Option(String(i).padStart(2, '0') + '时', i, i===defH, i===defH));
             for(let i=0; i<60; i++) minSel.add(new Option(String(i).padStart(2, '0') + '分', i, i===defMin, i===defMin));
+            Object.keys(CITY_DATA).forEach(p => provSel.add(new Option(p, p, p===defProv, p===defProv)));
 
-            // 初始化地点
-            Object.keys(CITY_DATA).forEach(p => provinceSel.add(new Option(p, p, p===defProvince, p===defProvince)));
             function updateCityOptions() {
-                const p = provinceSel.value;
                 citySel.innerHTML = '';
-                Object.keys(CITY_DATA[p]).forEach(c => citySel.add(new Option(c, c, c===defCity, c===defCity)));
+                Object.keys(CITY_DATA[provSel.value]).forEach(c => citySel.add(new Option(c, c, c===defCity, c===defCity)));
             }
-            provinceSel.onchange = () => { updateCityOptions(); updateDisplay(); };
-            citySel.onchange = updateDisplay;
-            solarCheck.onchange = updateDisplay;
-            updateCityOptions();
 
-            // 初始化 12 时辰按钮
+            function updateDayOptions() {
+                const y = parseInt(yearSel.value), type = calType.value;
+                monthSel.innerHTML = ''; daySel.innerHTML = '';
+                if (type === 'solar') {
+                    for(let i=1; i<=12; i++) monthSel.add(new Option(String(i).padStart(2, '0') + '月', i, i===defM, i===defM));
+                    const last = new Date(y, parseInt(monthSel.value), 0).getDate();
+                    for(let i=1; i<=last; i++) daySel.add(new Option(String(i).padStart(2, '0') + '日', i, i===Math.min(defD, last), i===Math.min(defD, last)));
+                } else {
+                    const lunarYear = LunarYear.fromYear(y);
+                    const months = lunarYear.getMonths();
+                    months.forEach(m => monthSel.add(new Option(m.isLeap() ? "闰" + LUNAR_MONTHS[m.getMonth()-1] : LUNAR_MONTHS[m.getMonth()-1], m.getMonth() * (m.isLeap() ? -1 : 1))));
+                    const curMonth = months.find(m => m.getMonth() === Math.abs(parseInt(monthSel.value)) && m.isLeap() === (parseInt(monthSel.value) < 0)) || months[0];
+                    for(let i=1; i<=curMonth.getDayCount(); i++) daySel.add(new Option(LUNAR_DAYS[i-1], i));
+                }
+            }
+
+            calType.onchange = () => { updateDayOptions(); updateDisplay(); };
+            yearSel.onchange = () => { updateDayOptions(); updateDisplay(); };
+            monthSel.onchange = () => {
+                if (calType.value === 'solar') {
+                    const y = parseInt(yearSel.value), m = parseInt(monthSel.value), last = new Date(y, m, 0).getDate();
+                    const curD = parseInt(daySel.value); daySel.innerHTML = '';
+                    for(let i=1; i<=last; i++) daySel.add(new Option(String(i).padStart(2, '0') + '日', i, i===Math.min(curD, last), i===Math.min(curD, last)));
+                } else {
+                    const y = parseInt(yearSel.value), mVal = parseInt(monthSel.value);
+                    const ly = LunarYear.fromYear(y), m = ly.getMonths().find(mm => mm.getMonth() === Math.abs(mVal) && mm.isLeap() === (mVal < 0));
+                    daySel.innerHTML = ''; for(let i=1; i<=m.getDayCount(); i++) daySel.add(new Option(LUNAR_DAYS[i-1], i));
+                }
+                updateDisplay();
+            };
+            daySel.onchange = updateDisplay; hourSel.onchange = updateDisplay; minSel.onchange = updateDisplay;
+            provSel.onchange = () => { updateCityOptions(); updateDisplay(); };
+            citySel.onchange = updateDisplay; solarCheck.onchange = updateDisplay;
+            unkCheck.onchange = () => { document.getElementById('timeInputGroup').style.opacity = unkCheck.checked ? "0.3" : "1"; updateDisplay(); };
+
             const shichenGrid = document.getElementById('shichenGrid');
             BRANCHES.forEach((b, i) => {
-                const btn = document.createElement('button');
+                const btn = document.createElement('button'); btn.innerText = b + '时';
                 btn.className = "px-2 py-0.5 text-[9px] border border-yellow-300 rounded hover:bg-yellow-100 transition sc-btn";
-                btn.innerText = b + '时';
-                btn.onclick = () => {
-                    unknownCheck.checked = false;
-                    hourSel.value = (i * 2 + 23) % 24;
-                    minSel.value = 0;
-                    updateDisplay();
-                };
+                btn.onclick = () => { unkCheck.checked = false; hourSel.value = (i * 2 + 23) % 24; minSel.value = 0; updateDisplay(); };
                 shichenGrid.appendChild(btn);
             });
 
-            function updateDayOptions() {
-                const y = parseInt(yearSel.value), m = parseInt(monthSel.value);
-                const lastDay = new Date(y, m, 0).getDate();
-                const currentDay = parseInt(daySel.value) || defD;
-                daySel.innerHTML = '';
-                for(let i=1; i<=lastDay; i++) daySel.add(new Option(String(i).padStart(2, '0') + '日', i, i===Math.min(currentDay, lastDay), i===Math.min(currentDay, lastDay)));
-            }
-
-            yearSel.onchange = () => { updateDayOptions(); updateDisplay(); };
-            monthSel.onchange = () => { updateDayOptions(); updateDisplay(); };
-            daySel.onchange = updateDisplay;
-            hourSel.onchange = updateDisplay;
-            minSel.onchange = updateDisplay;
-            unknownCheck.onchange = () => {
-                document.getElementById('timeInputGroup').style.opacity = unknownCheck.checked ? "0.3" : "1";
-                updateDisplay();
-            };
-            document.querySelectorAll('input[name="gender"]').forEach(r => r.onchange = updateDisplay);
-
-            updateDayOptions();
-            unknownCheck.checked = defUnknown;
-            solarCheck.checked = defUseSolar;
-            document.getElementById('timeInputGroup').style.opacity = defUnknown ? "0.3" : "1";
-            document.querySelector(`input[name="gender"][value="${defGender}"]`).checked = true;
+            calType.value = defCal; updateCityOptions(); updateDayOptions();
+            unkCheck.checked = defUnk; solarCheck.checked = defUseSolar;
+            document.getElementById('timeInputGroup').style.opacity = defUnk ? "0.3" : "1";
+            document.querySelector(`input[name="gender"][value="${defGen}"]`).checked = true;
             document.getElementById('btnCalculate').onclick = updateDisplay;
             updateDisplay();
         };
 
         function getWuXingClass(char) { return `color-${WUXING[char] || 'metal'}`; }
-
-        function renderPillar(title, gan, zhi, hideGan, shiShenGan, shiShenZhi, isDayMaster = false) {
-            return `
-                <div class="flex flex-col items-center ${isDayMaster ? 'pillar-highlight' : ''}">
-                    <span class="text-[9px] text-red-700 font-bold mb-0.5">${shiShenGan || ''}</span>
-                    <span class="text-[10px] text-yellow-800">${title}</span>
-                    <span class="text-xl font-bold ${getWuXingClass(gan)}">${gan}</span>
-                    <span class="text-xl font-bold ${getWuXingClass(zhi)}">${zhi}</span>
-                    <div class="flex flex-col items-center leading-none mt-0.5">
-                        <span class="text-[9px] opacity-40">${hideGan || ''}</span>
-                        <span class="text-[8px] text-red-800 opacity-60 scale-90">${shiShenZhi || ''}</span>
-                    </div>
-                </div>
-            `;
+        function renderPillar(title, gan, zhi, hide, ssGan, ssZhi, isDM = false) {
+            return `<div class="flex flex-col items-center ${isDM ? 'pillar-highlight' : ''}"><span class="text-[9px] text-red-700 font-bold mb-0.5">${ssGan||''}</span><span class="text-[10px] text-yellow-800">${title}</span><span class="text-xl font-bold ${getWuXingClass(gan)}">${gan}</span><span class="text-xl font-bold ${getWuXingClass(zhi)}">${zhi}</span><div class="flex flex-col items-center leading-none mt-0.5"><span class="text-[9px] opacity-40">${hide||''}</span><span class="text-[8px] text-red-800 opacity-60 scale-90">${ssZhi||''}</span></div></div>`;
         }
 
         function updateDisplay() {
             try {
-                const y = parseInt(document.getElementById('inputYear').value);
-                const m = parseInt(document.getElementById('inputMonth').value);
-                const d = parseInt(document.getElementById('inputDay').value);
-                const hh = parseInt(document.getElementById('inputHour').value);
-                const mm = parseInt(document.getElementById('inputMin').value);
-                const gender = document.querySelector('input[name="gender"]:checked').value;
-                const unknown = document.getElementById('timeUnknown').checked;
-                const province = document.getElementById('provinceSel').value;
-                const city = document.getElementById('citySel').value;
-                const useSolar = document.getElementById('useSolarTime').checked;
+                const y = parseInt(document.getElementById('inputYear').value), m = parseInt(document.getElementById('inputMonth').value), d = parseInt(document.getElementById('inputDay').value);
+                const hh = parseInt(document.getElementById('inputHour').value), mm = parseInt(document.getElementById('inputMin').value), type = document.getElementById('calendarType').value;
+                const gen = document.querySelector('input[name="gender"]:checked').value, unk = document.getElementById('timeUnknown').checked;
+                const prov = document.getElementById('provinceSel').value, city = document.getElementById('citySel').value, useSolar = document.getElementById('useSolarTime').checked;
+                localStorage.setItem('bazi_last_input', JSON.stringify({ y, m, d, hh, mm, gender: gen, unknown: unk, province: prov, city, useSolar, cal: type }));
 
-                localStorage.setItem('bazi_last_input', JSON.stringify({ y, m, d, hh, mm, gender, unknown, province, city, useSolar }));
+                let solar;
+                if (type === 'solar') { solar = Solar.fromYmdHms(y, m, d, hh, mm, 0); }
+                else { const lunar = Lunar.fromYmd(y, Math.abs(m), d); if (m < 0) lunar.setLeap(true); solar = lunar.getSolar(); solar = Solar.fromYmdHms(solar.getYear(), solar.getMonth(), solar.getDay(), hh, mm, 0); }
 
-                const S = window.Solar || Solar, L = window.Lunar || Lunar;
+                const lng = CITY_DATA[prov][city], off = getSolarTimeOffset(lng, solar.getYear(), solar.getMonth(), solar.getDay());
+                document.getElementById('lngDisplay').innerText = `经度: ${lng.toFixed(2)}`;
+                if (useSolar && !unk) { const calcDate = new Date(new Date(solar.getYear(), solar.getMonth()-1, solar.getDay(), hh, mm).getTime() + off.total * 60000); solar = Solar.fromYmdHms(calcDate.getFullYear(), calcDate.getMonth()+1, calcDate.getDate(), calcDate.getHours(), calcDate.getMinutes(), 0); }
                 
-                // 计算真太阳时修正
-                const longitude = CITY_DATA[province][city];
-                const offsetData = getSolarTimeOffset(longitude, y, m, d);
-                
-                // 决定实际用于排盘的时间
-                let calcDate = new Date(y, m - 1, d, hh, mm);
-                if (useSolar && !unknown) {
-                    calcDate = new Date(calcDate.getTime() + offsetData.total * 60000);
-                }
+                const lunar = Lunar.fromSolar(solar), baZi = lunar.getEightChar();
+                if (!unk) {
+                    let start = solar.getHour() % 2 === 0 ? solar.getHour() - 1 : solar.getHour(); if (start === -1) start = 23;
+                    document.getElementById('shichenInfo').innerHTML = `<div class="flex flex-col"><span>时辰范围：${String(start).padStart(2, '0')}:00 ~ ${String((start+2)%24).padStart(2, '0')}:00</span><span class="text-[9px] opacity-80">修正: ${off.total.toFixed(1)}分 (经度:${off.longOff.toFixed(1)} + 均时差:${off.eotOff.toFixed(1)})</span></div>`;
+                    document.querySelectorAll('.sc-btn').forEach(btn => btn.innerText.startsWith(baZi.getTimeZhi()) ? btn.classList.add('bg-yellow-700', 'text-white') : btn.classList.remove('bg-yellow-700', 'text-white'));
+                } else { document.getElementById('shichenInfo').innerText = "出生时辰：不详 (仅排六字)"; document.querySelectorAll('.sc-btn').forEach(btn => btn.classList.remove('bg-yellow-700', 'text-white')); }
 
-                const solar = S.fromYmdHms(calcDate.getFullYear(), calcDate.getMonth() + 1, calcDate.getDate(), calcDate.getHours(), calcDate.getMinutes(), 0);
-                const lunar = L.fromSolar(solar);
-                const baZi = lunar.getEightChar();
+                document.getElementById('basicInfo').innerHTML = `<div class="text-base font-bold">${solar.toYmd()} ${unk ? '时辰不详' : String(solar.getHour()).padStart(2, '0')+':'+String(solar.getMinute()).padStart(2, '0')}</div><div class="text-sm text-yellow-900">${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()} ${unk ? '' : '('+baZi.getTimeZhi()+'时)'}</div><div class="flex flex-wrap justify-center space-x-1 text-[10px] mt-1"><span class="bg-yellow-100 px-1 rounded">${prov}-${city}</span><span class="bg-yellow-100 px-1 rounded">生肖：${lunar.getYearShengXiao()}</span><span class="bg-yellow-100 px-1 rounded">星座：${solar.getXingZuo()}</span><span class="bg-yellow-100 px-1 rounded">性别：${gen === '1' ? '男' : '女'}</span></div>`;
+                document.getElementById('baziDisplay').innerHTML = `${renderPillar('年', baZi.getYearGan(), baZi.getYearZhi(), baZi.getYearHideGan().join(''), baZi.getYearShiShenGan(), baZi.getYearShiShenZhi()[0])}${renderPillar('月', baZi.getMonthGan(), baZi.getMonthZhi(), baZi.getMonthHideGan().join(''), baZi.getMonthShiShenGan(), baZi.getMonthShiShenZhi()[0])}${renderPillar('日', baZi.getDayGan(), baZi.getDayZhi(), baZi.getDayHideGan().join(''), '日主', baZi.getDayShiShenZhi()[0], true)}${unk ? '<div class="flex flex-col items-center opacity-10"><span class="text-[10px] text-yellow-800">时</span><span class="text-xl font-bold text-gray-300">?</span><span class="text-xl font-bold text-gray-300">?</span></div>' : renderPillar('时', baZi.getTimeGan(), baZi.getTimeZhi(), baZi.getTimeHideGan().join(''), baZi.getTimeShiShenGan(), baZi.getTimeShiShenZhi()[0])}`;
 
-                if (!unknown) {
-                    let startHour = solar.getHour() % 2 === 0 ? solar.getHour() - 1 : solar.getHour();
-                    if (startHour === -1) startHour = 23;
-                    document.getElementById('shichenInfo').innerHTML = `
-                        <div class="flex flex-col">
-                            <span>当前时辰范围：${String(startHour).padStart(2, '0')}:00 ~ ${String((startHour+2)%24).padStart(2, '0')}:00</span>
-                            <span class="text-[9px] opacity-80">修正值: ${offsetData.total.toFixed(1)}分 (经度:${offsetData.longOffset.toFixed(1)} + 均时差:${offsetData.eotOffset.toFixed(1)})</span>
-                        </div>`;
-                    
-                    const curZhi = baZi.getTimeZhi();
-                    document.querySelectorAll('.sc-btn').forEach(btn => {
-                        if (btn.innerText.startsWith(curZhi)) btn.classList.add('bg-yellow-700', 'text-white');
-                        else btn.classList.remove('bg-yellow-700', 'text-white');
-                    });
-                } else {
-                    document.getElementById('shichenInfo').innerText = "出生时辰：不详 (仅排六字)";
-                    document.querySelectorAll('.sc-btn').forEach(btn => btn.classList.remove('bg-yellow-700', 'text-white'));
-                }
-
-                document.getElementById('basicInfo').innerHTML = `
-                    <div class="text-base font-bold">${solar.toYmd()} ${unknown ? '时辰不详' : String(solar.getHour()).padStart(2, '0')+':'+String(solar.getMinute()).padStart(2, '0')}</div>
-                    <div class="text-sm text-yellow-900">${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()} ${unknown ? '' : '('+baZi.getTimeZhi()+'时)'}</div>
-                    <div class="flex flex-wrap justify-center space-x-1 text-[10px] mt-1">
-                        <span class="bg-yellow-100 px-1 rounded">${province}-${city}</span>
-                        <span class="bg-yellow-100 px-1 rounded">生肖：${lunar.getYearShengXiao()}</span>
-                        <span class="bg-yellow-100 px-1 rounded">星座：${solar.getXingZuo()}</span>
-                        <span class="bg-yellow-100 px-1 rounded">性别：${gender === '1' ? '男' : '女'}</span>
-                    </div>
-                `;
-
-                const timePillarHtml = unknown ? '<div class="flex flex-col items-center opacity-10"><span class="text-[10px] text-yellow-800">时</span><span class="text-xl font-bold text-gray-300">?</span><span class="text-xl font-bold text-gray-300">?</span></div>' : 
-                    renderPillar('时', baZi.getTimeGan(), baZi.getTimeZhi(), baZi.getTimeHideGan().join(''), baZi.getTimeShiShenGan(), baZi.getTimeShiShenZhi()[0]);
-
-                document.getElementById('baziDisplay').innerHTML = `
-                    ${renderPillar('年', baZi.getYearGan(), baZi.getYearZhi(), baZi.getYearHideGan().join(''), baZi.getYearShiShenGan(), baZi.getYearShiShenZhi()[0])}
-                    ${renderPillar('月', baZi.getMonthGan(), baZi.getMonthZhi(), baZi.getMonthHideGan().join(''), baZi.getMonthShiShenGan(), baZi.getMonthShiShenZhi()[0])}
-                    ${renderPillar('日', baZi.getDayGan(), baZi.getDayZhi(), baZi.getDayHideGan().join(''), '日主', baZi.getDayShiShenZhi()[0], true)}
-                    ${timePillarHtml}
-                `;
-
-                BRANCHES.forEach((branch, index) => {
-                    const cell = document.getElementById(`pos-${index}`);
-                    const isTimeZhi = !unknown && baZi.getTimeZhi() === branch;
-                    const isYearZhi = baZi.getYearZhi() === branch;
-                    cell.innerHTML = `
-                        <div class="flex justify-between items-start leading-tight">
-                            <span class="text-lg font-bold ${getWuXingClass(branch)}">${branch}</span>
-                            <div class="flex flex-col items-end">${isTimeZhi?'<span class="bg-red-700 text-white text-[8px] px-1 rounded">时</span>':''}${isYearZhi?'<span class="bg-yellow-700 text-white text-[8px] px-1 rounded ml-0.5">年</span>':''}</div>
-                        </div>
-                        <div class="text-[9px] text-yellow-900 opacity-20 text-right">${branch}宫</div>
-                    `;
-                    cell.style.backgroundColor = isTimeZhi ? "rgba(254, 243, 199, 0.8)" : "";
-                });
-
-                let mdText = `### 灵犀命理排盘报告\n\n` +
-                    `- **公历**: ${solar.toYmd()} ${unknown ? '时辰不详' : String(solar.getHour()).padStart(2, '0')+':'+String(solar.getMinute()).padStart(2, '0')}\n` +
-                    `- **地点**: ${province} - ${city} (经度: ${longitude})\n` +
-                    `- **真太阳时修正**: ${offsetData.total.toFixed(2)} 分钟\n` +
+                const mdText = `### 灵犀命理排盘报告\n\n` +
+                    `- **公历**: ${solar.toYmd()} ${unk ? '时辰不详' : String(solar.getHour()).padStart(2, '0')+':'+String(solar.getMinute()).padStart(2, '0')}\n` +
+                    `- **地点**: ${prov} - ${city} (经度: ${lng})\n` +
+                    `- **真太阳时修正**: ${off.total.toFixed(2)} 分钟\n` +
                     `- **农历**: ${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()}\n` +
-                    `- **性别**: ${gender === '1' ? '男 (乾造)' : '女 (坤造)'}\n` +
+                    `- **${unk ? '六字' : '八字'}**: ${baZi.getYearGan()}${baZi.getYearZhi()}年 ${baZi.getMonthGan()}${baZi.getMonthZhi()}月 ${baZi.getDayGan()}${baZi.getDayZhi()}日${unk ? '' : ' ' + baZi.getTimeGan() + baZi.getTimeZhi() + '时'}\n` +
+                    `- **性别**: ${gen === '1' ? '男 (乾造)' : '女 (坤造)'}\n` +
                     `- **生肖**: ${lunar.getYearShengXiao()} (${lunar.getYearNaYin()})\n` +
                     `- **星座**: ${solar.getXingZuo()}座\n\n` +
-                    `#### 生辰八字 (${unknown ? '六字' : '八字'})\n` +
+                    `#### 生辰八字 (${unk ? '六字' : '八字'})\n` +
                     `| 四柱 | 年柱 | 月柱 | 日柱 | 时柱 |\n| :--- | :--- | :--- | :--- | :--- |\n` +
-                    `| **十神** | ${baZi.getYearShiShenGan()} | ${baZi.getMonthShiShenGan()} | 日主 | ${unknown ? '?' : baZi.getTimeShiShenGan()} |\n` +
-                    `| **干支** | ${baZi.getYearGan()}${baZi.getYearZhi()} | ${baZi.getMonthGan()}${baZi.getMonthZhi()} | ${baZi.getDayGan()}${baZi.getDayZhi()} | ${unknown ? '??' : baZi.getTimeGan()+baZi.getTimeZhi()} |\n` +
-                    `| **地势** | ${baZi.getYearShiShenZhi()[0]} | ${baZi.getMonthShiShenZhi()[0]} | ${baZi.getDayShiShenZhi()[0]} | ${unknown ? '?' : baZi.getTimeShiShenZhi()[0]} |\n` +
-                    `| **纳音** | ${lunar.getYearNaYin()} | ${lunar.getMonthNaYin()} | ${lunar.getDayNaYin()} | ${unknown ? '?' : lunar.getTimeNaYin()} |\n` +
-                    `| **藏干** | ${baZi.getYearHideGan().join('')} | ${baZi.getMonthHideGan().join('')} | ${baZi.getDayHideGan().join('')} | ${unknown ? '?' : baZi.getTimeHideGan().join('')} |\n\n` +
+                    `| **十神** | ${baZi.getYearShiShenGan()} | ${baZi.getMonthShiShenGan()} | 日主 | ${unk ? '?' : baZi.getTimeShiShenGan()} |\n` +
+                    `| **干支** | ${baZi.getYearGan()}${baZi.getYearZhi()} | ${baZi.getMonthGan()}${baZi.getMonthZhi()} | ${baZi.getDayGan()}${baZi.getDayZhi()} | ${unk ? '??' : baZi.getTimeGan()+baZi.getTimeZhi()} |\n` +
+                    `| **地势** | ${baZi.getYearShiShenZhi()[0]} | ${baZi.getMonthShiShenZhi()[0]} | ${baZi.getDayShiShenZhi()[0]} | ${unk ? '?' : baZi.getTimeShiShenZhi()[0]} |\n` +
+                    `| **纳音** | ${lunar.getYearNaYin()} | ${lunar.getMonthNaYin()} | ${lunar.getDayNaYin()} | ${unk ? '?' : lunar.getTimeNaYin()} |\n` +
+                    `| **藏干** | ${baZi.getYearHideGan().join('')} | ${baZi.getMonthHideGan().join('')} | ${baZi.getDayHideGan().join('')} | ${unk ? '?' : baZi.getTimeHideGan().join('')} |\n\n` +
                     `---\n*本报告由灵犀排盘生成，${useSolar ? '已应用真太阳时修正' : '未应用修正'}*`;
                 document.getElementById('mdOutput').value = mdText;
             } catch (e) { console.error(e); }
         }
-
-        function copyMd() {
-            const area = document.getElementById('mdOutput');
-            area.select();
-            document.execCommand('copy');
-            alert('报告已复制到剪贴板');
-        }
+        function copyMd() { const area = document.getElementById('mdOutput'); area.select(); document.execCommand('copy'); alert('报告已复制到剪贴板'); }
     </script>
 </body>
 </html>

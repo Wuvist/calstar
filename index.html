@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>玄学命理排盘系统 - 灵犀本地版</title>
-    <!-- 使用本地下载的 CSS -->
     <link rel="stylesheet" href="tailwind.min.css">
-    <!-- 使用本地下载的 JS -->
     <script src="lunar.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -16,149 +14,112 @@
             color: #2C3E50;
         }
         .chinese-border {
-            border: 2px solid #8B4513;
+            border: 1px solid #8B4513;
             position: relative;
         }
         .chinese-border::after {
             content: '';
             position: absolute;
-            top: 2px; left: 2px; right: 2px; bottom: 2px;
+            top: 1px; left: 1px; right: 1px; bottom: 1px;
             border: 1px solid #8B4513;
             pointer-events: none;
         }
         .palace-cell {
-            min-height: 100px;
-            aspect-ratio: 1 / 1;
+            min-height: 70px;
             transition: all 0.3s ease;
         }
         .palace-cell:hover {
             background-color: #E9E9D0;
         }
-        /* 五行颜色映射 */
         .color-wood { color: #2D5A27; }
         .color-fire { color: #C04851; }
         .color-earth { color: #8B7042; }
         .color-metal { color: #9D9087; }
         .color-water { color: #1A1A1A; }
-        
         .pillar-highlight {
-            border-bottom: 3px solid #C04851;
+            border-bottom: 2px solid #C04851;
         }
-
-        /* 修复 Tailwind v2 缺少的部分类 */
-        .aspect-square { aspect-ratio: 1 / 1; }
-        
         @media (max-width: 768px) {
-            .palace-grid {
-                display: flex;
-                flex-direction: column;
-            }
-            .center-info {
-                order: -1;
-                margin-bottom: 1rem;
-            }
-            .palace-cell {
-                aspect-ratio: auto;
-                min-height: 80px;
-            }
+            .palace-grid { display: flex; flex-direction: column; }
+            .center-info { order: -1; margin-bottom: 0.5rem; }
+            .palace-cell { min-height: 60px; }
         }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-2 md:p-4 h-screen overflow-hidden flex flex-col">
 
-    <div class="max-w-5xl mx-auto">
-        <header class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-yellow-900 mb-2">灵犀命理排盘</h1>
-            <p class="text-sm text-yellow-800 opacity-75 italic">— 离线本地版 —</p>
+    <div class="max-w-6xl mx-auto flex-grow flex flex-col w-full">
+        <header class="text-center mb-2">
+            <h1 class="text-2xl font-bold text-yellow-900">灵犀命理排盘</h1>
         </header>
 
         <!-- 输入模块 -->
-        <section class="bg-white bg-opacity-50 p-6 rounded-lg shadow-sm border border-yellow-200 mb-8">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                <div class="md:col-span-1">
-                    <label class="block text-xs font-bold text-yellow-900 mb-1">公历日期 (年-月-日)</label>
-                    <div class="flex items-center space-x-1 border-b border-yellow-900">
-                        <select id="inputYear" class="bg-transparent p-1 focus:outline-none appearance-none cursor-pointer flex-grow text-center text-sm">
-                            <!-- 年份 -->
-                        </select>
+        <section class="bg-white bg-opacity-50 p-3 rounded-lg shadow-sm border border-yellow-200 mb-4 shrink-0">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 items-end">
+                <div class="col-span-1">
+                    <label class="block text-[10px] font-bold text-yellow-900 mb-0.5">公历日期</label>
+                    <div class="flex items-center space-x-0.5 border-b border-yellow-900">
+                        <select id="inputYear" class="bg-transparent text-xs focus:outline-none appearance-none cursor-pointer flex-grow text-center"></select>
                         <span class="text-yellow-900">-</span>
-                        <select id="inputMonth" class="bg-transparent p-1 focus:outline-none appearance-none cursor-pointer flex-grow text-center text-sm">
-                            <!-- 月份 -->
-                        </select>
+                        <select id="inputMonth" class="bg-transparent text-xs focus:outline-none appearance-none cursor-pointer flex-grow text-center"></select>
                         <span class="text-yellow-900">-</span>
-                        <select id="inputDay" class="bg-transparent p-1 focus:outline-none appearance-none cursor-pointer flex-grow text-center text-sm">
-                            <!-- 日期 -->
-                        </select>
+                        <select id="inputDay" class="bg-transparent text-xs focus:outline-none appearance-none cursor-pointer flex-grow text-center"></select>
                     </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-yellow-900 mb-1">出生时间 (24小时制)</label>
-                    <div class="flex items-center space-x-1 border-b border-yellow-900">
-                        <select id="inputHour" class="bg-transparent p-1 focus:outline-none appearance-none cursor-pointer flex-grow text-center">
-                            <!-- 00-23 由 JS 生成 -->
-                        </select>
-                        <span class="text-yellow-900 font-bold">:</span>
-                        <select id="inputMin" class="bg-transparent p-1 focus:outline-none appearance-none cursor-pointer flex-grow text-center">
-                            <!-- 00-59 由 JS 生成 -->
-                        </select>
+                <div class="col-span-1">
+                    <label class="block text-[10px] font-bold text-yellow-900 mb-0.5">时间 (24H)</label>
+                    <div class="flex items-center space-x-0.5 border-b border-yellow-900">
+                        <select id="inputHour" class="bg-transparent text-xs focus:outline-none appearance-none cursor-pointer flex-grow text-center"></select>
+                        <span class="text-yellow-900">:</span>
+                        <select id="inputMin" class="bg-transparent text-xs focus:outline-none appearance-none cursor-pointer flex-grow text-center"></select>
                     </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-yellow-900 mb-1">性别</label>
-                    <div class="flex space-x-4 p-1">
-                        <label class="flex items-center cursor-pointer">
-                            <input type="radio" name="gender" value="1" checked class="mr-1"> 乾造(男)
-                        </label>
-                        <label class="flex items-center cursor-pointer">
-                            <input type="radio" name="gender" value="0" class="mr-1"> 坤造(女)
-                        </label>
+                <div class="col-span-1">
+                    <label class="block text-[10px] font-bold text-yellow-900 mb-0.5">性别</label>
+                    <div class="flex space-x-2 text-xs py-0.5">
+                        <label class="flex items-center cursor-pointer"><input type="radio" name="gender" value="1" checked class="mr-0.5"> 男</label>
+                        <label class="flex items-center cursor-pointer"><input type="radio" name="gender" value="0" class="mr-0.5"> 女</label>
                     </div>
                 </div>
-                <div>
-                    <button id="btnCalculate" class="w-full bg-yellow-900 text-white py-2 px-4 rounded hover:bg-yellow-800 transition">
-                        起卦 / 排盘
-                    </button>
+                <div class="col-span-1">
+                    <button id="btnCalculate" class="w-full bg-yellow-900 text-white py-1.5 px-2 rounded text-xs hover:bg-yellow-800 transition">起卦排盘</button>
                 </div>
             </div>
         </section>
 
-        <!-- 排盘网格 -->
-        <div class="grid grid-cols-4 grid-rows-4 gap-2 md:gap-4 palace-grid">
-            <!-- 12宫位将由 JS 动态生成 ID 或保持固定 ID -->
-            <!-- 第一排: 巳 午 未 申 -->
-            <div id="pos-5" class="palace-cell chinese-border p-2 flex flex-col justify-between bg-white bg-opacity-30"></div>
-            <div id="pos-6" class="palace-cell chinese-border p-2 flex flex-col justify-between bg-white bg-opacity-30"></div>
-            <div id="pos-7" class="palace-cell chinese-border p-2 flex flex-col justify-between bg-white bg-opacity-30"></div>
-            <div id="pos-8" class="palace-cell chinese-border p-2 flex flex-col justify-between bg-white bg-opacity-30"></div>
+        <!-- 主体区域 -->
+        <div class="flex flex-row gap-4 flex-grow overflow-hidden">
+            <!-- 左侧排盘 -->
+            <div class="flex-grow grid grid-cols-4 grid-rows-4 gap-1 md:gap-2">
+                <div id="pos-5" class="palace-cell chinese-border p-1.5 flex flex-col justify-between bg-white bg-opacity-30"></div>
+                <div id="pos-6" class="palace-cell chinese-border p-1.5 flex flex-col justify-between bg-white bg-opacity-30"></div>
+                <div id="pos-7" class="palace-cell chinese-border p-1.5 flex flex-col justify-between bg-white bg-opacity-30"></div>
+                <div id="pos-8" class="palace-cell chinese-border p-1.5 flex flex-col justify-between bg-white bg-opacity-30"></div>
 
-            <!-- 第二排: 辰 (中心) 酉 -->
-            <div id="pos-4" class="palace-cell chinese-border p-2 flex flex-col justify-between bg-white bg-opacity-30"></div>
-            
-            <div class="col-span-2 row-span-2 bg-white bg-opacity-80 chinese-border p-4 center-info flex flex-col items-center justify-center text-center">
-                <div id="basicInfo" class="space-y-2">
-                    <p class="text-gray-400">请选择日期时间后点击排盘</p>
+                <div id="pos-4" class="palace-cell chinese-border p-1.5 flex flex-col justify-between bg-white bg-opacity-30"></div>
+                <div class="col-span-2 row-span-2 bg-white bg-opacity-80 chinese-border p-2 center-info flex flex-col items-center justify-center text-center">
+                    <div id="basicInfo" class="space-y-0.5 w-full"></div>
+                    <div id="shichenInfo" class="text-[10px] text-red-800 opacity-70 mt-1 mb-1 font-mono"></div>
+                    <div id="baziDisplay" class="mt-2 flex space-x-2 border-t border-yellow-100 pt-2 w-full justify-around min-h-[60px]"></div>
                 </div>
-                <div id="baziDisplay" class="mt-6 flex space-x-4 border-t border-yellow-200 pt-4 w-full justify-around min-h-[80px]">
-                    <!-- 这里显示八字四柱 -->
-                </div>
+                <div id="pos-9" class="palace-cell chinese-border p-1.5 flex flex-col justify-between bg-white bg-opacity-30"></div>
+
+                <div id="pos-3" class="palace-cell chinese-border p-1.5 flex flex-col justify-between bg-white bg-opacity-30"></div>
+                <div id="pos-10" class="palace-cell chinese-border p-1.5 flex flex-col justify-between bg-white bg-opacity-30"></div>
+
+                <div id="pos-2" class="palace-cell chinese-border p-1.5 flex flex-col justify-between bg-white bg-opacity-30"></div>
+                <div id="pos-1" class="palace-cell chinese-border p-1.5 flex flex-col justify-between bg-white bg-opacity-30"></div>
+                <div id="pos-0" class="palace-cell chinese-border p-1.5 flex flex-col justify-between bg-white bg-opacity-30"></div>
+                <div id="pos-11" class="palace-cell chinese-border p-1.5 flex flex-col justify-between bg-white bg-opacity-30"></div>
             </div>
 
-            <div id="pos-9" class="palace-cell chinese-border p-2 flex flex-col justify-between bg-white bg-opacity-30"></div>
-
-            <!-- 第三排: 卯 (中心) 戌 -->
-            <div id="pos-3" class="palace-cell chinese-border p-2 flex flex-col justify-between bg-white bg-opacity-30"></div>
-            <div id="pos-10" class="palace-cell chinese-border p-2 flex flex-col justify-between bg-white bg-opacity-30"></div>
-
-            <!-- 第四排: 寅 丑 子 亥 -->
-            <div id="pos-2" class="palace-cell chinese-border p-2 flex flex-col justify-between bg-white bg-opacity-30"></div>
-            <div id="pos-1" class="palace-cell chinese-border p-2 flex flex-col justify-between bg-white bg-opacity-30"></div>
-            <div id="pos-0" class="palace-cell chinese-border p-2 flex flex-col justify-between bg-white bg-opacity-30"></div>
-            <div id="pos-11" class="palace-cell chinese-border p-2 flex flex-col justify-between bg-white bg-opacity-30"></div>
+            <!-- 右侧 Markdown 导出 -->
+            <div class="w-64 md:w-80 flex flex-col shrink-0 border-l border-yellow-200 pl-4 h-full">
+                <label class="text-[10px] font-bold text-yellow-900 mb-1">Markdown 报告</label>
+                <textarea id="mdOutput" readonly class="flex-grow bg-white bg-opacity-50 border border-yellow-200 rounded p-3 text-[10px] font-mono focus:outline-none resize-none leading-relaxed" placeholder="排盘数据生成中..."></textarea>
+                <button onclick="copyMd()" class="mt-2 bg-yellow-100 text-yellow-900 py-1 rounded text-[10px] hover:bg-yellow-200 transition">点击复制报告</button>
+            </div>
         </div>
-
-        <footer class="mt-12 text-center text-xs text-yellow-900 opacity-50">
-            算法采用 lunar-javascript (Local) | 支持早晚子时切换
-        </footer>
     </div>
 
     <script>
@@ -169,81 +130,59 @@
             '庚': 'metal', '辛': 'metal', '申': 'metal', '酉': 'metal',
             '壬': 'water', '癸': 'water', '亥': 'water', '子': 'water'
         };
-
         const BRANCHES = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
 
         window.onload = function() {
+            const lastData = JSON.parse(localStorage.getItem('bazi_last_input')) || {};
             const now = new Date();
+            const defY = lastData.y || now.getFullYear();
+            const defM = lastData.m || now.getMonth() + 1;
+            const defD = lastData.d || now.getDate();
+            const defH = lastData.hh !== undefined ? lastData.hh : now.getHours();
+            const defMin = lastData.mm !== undefined ? lastData.mm : now.getMinutes();
+            const defGender = lastData.gender !== undefined ? lastData.gender : "1";
+
             const yearSel = document.getElementById('inputYear');
             const monthSel = document.getElementById('inputMonth');
             const daySel = document.getElementById('inputDay');
-
-            // 初始化年份 (1900-2100)
-            for(let i=1900; i<=2100; i++) {
-                const opt = new Option(i + '年', i);
-                if(i === now.getFullYear()) opt.selected = true;
-                yearSel.add(opt);
-            }
-            // 初始化月份 (1-12)
-            for(let i=1; i<=12; i++) {
-                const opt = new Option(String(i).padStart(2, '0') + '月', i);
-                if(i === (now.getMonth() + 1)) opt.selected = true;
-                monthSel.add(opt);
-            }
-            // 动态更新日期函数
-            function updateDayOptions() {
-                const y = parseInt(yearSel.value);
-                const m = parseInt(monthSel.value);
-                const lastDay = new Date(y, m, 0).getDate();
-                const currentDay = parseInt(daySel.value) || now.getDate();
-                
-                daySel.innerHTML = '';
-                for(let i=1; i<=lastDay; i++) {
-                    const opt = new Option(String(i).padStart(2, '0') + '日', i);
-                    if(i === Math.min(currentDay, lastDay)) opt.selected = true;
-                    daySel.add(opt);
-                }
-            }
-            
-            yearSel.onchange = updateDayOptions;
-            monthSel.onchange = updateDayOptions;
-            updateDayOptions(); // 初始化日期
-
-            // 初始化小时下拉 (00-23)
             const hourSel = document.getElementById('inputHour');
-            for(let i=0; i<24; i++) {
-                hourSel.add(new Option(String(i).padStart(2, '0') + '时', i, i===12, i===12));
-            }
-            // 初始化分钟下拉 (00-59)
             const minSel = document.getElementById('inputMin');
-            for(let i=0; i<60; i++) {
-                minSel.add(new Option(String(i).padStart(2, '0') + '分', i));
+
+            for(let i=1900; i<=2100; i++) yearSel.add(new Option(i + '年', i, i===defY, i===defY));
+            for(let i=1; i<=12; i++) monthSel.add(new Option(String(i).padStart(2, '0') + '月', i, i===defM, i===defM));
+            for(let i=0; i<24; i++) hourSel.add(new Option(String(i).padStart(2, '0') + '时', i, i===defH, i===defH));
+            for(let i=0; i<60; i++) minSel.add(new Option(String(i).padStart(2, '0') + '分', i, i===defMin, i===defMin));
+
+            function updateDayOptions() {
+                const y = parseInt(yearSel.value), m = parseInt(monthSel.value);
+                const lastDay = new Date(y, m, 0).getDate();
+                const currentDay = parseInt(daySel.value) || defD;
+                daySel.innerHTML = '';
+                for(let i=1; i<=lastDay; i++) daySel.add(new Option(String(i).padStart(2, '0') + '日', i, i===Math.min(currentDay, lastDay), i===Math.min(currentDay, lastDay)));
             }
 
-            // 绑定点击事件
-            document.getElementById('btnCalculate').addEventListener('click', updateDisplay);
-            
-            // 自动执行一次
+            yearSel.onchange = () => { updateDayOptions(); updateDisplay(); };
+            monthSel.onchange = () => { updateDayOptions(); updateDisplay(); };
+            daySel.onchange = updateDisplay;
+            hourSel.onchange = updateDisplay;
+            minSel.onchange = updateDisplay;
+            document.querySelectorAll('input[name="gender"]').forEach(r => r.onchange = updateDisplay);
+
+            updateDayOptions();
+            document.querySelector(`input[name="gender"][value="${defGender}"]`).checked = true;
+            document.getElementById('btnCalculate').onclick = updateDisplay;
             updateDisplay();
         };
 
-        function getWuXingClass(char) {
-            return `color-${WUXING[char] || 'metal'}`;
-        }
+        function getWuXingClass(char) { return `color-${WUXING[char] || 'metal'}`; }
 
-        function renderPillar(title, gan, zhi, isDayMaster = false) {
-            if (!gan || !zhi) return '';
-            const ganColor = getWuXingClass(gan);
-            const zhiColor = getWuXingClass(zhi);
-            let hideGan = "";
-            try { hideGan = LunarUtil.getZhiHideGan(zhi).join(''); } catch(e) {}
-
+        function renderPillar(title, gan, zhi, hideGan, isDayMaster = false) {
             return `
                 <div class="flex flex-col items-center ${isDayMaster ? 'pillar-highlight' : ''}">
-                    <span class="text-xs text-yellow-800 mb-1">${title}</span>
-                    <span class="text-2xl font-bold ${ganColor}">${gan}</span>
-                    <span class="text-2xl font-bold ${zhiColor}">${zhi}</span>
-                    <span class="text-[10px] opacity-40 mt-1">${hideGan}</span>
+                    <span class="text-[10px] text-yellow-800">${title}</span>
+                    <span class="text-xl font-bold ${getWuXingClass(gan)}">${gan}</span>
+                    <span class="text-xl font-bold ${getWuXingClass(zhi)}">${zhi}</span>
+                    <span class="text-[9px] opacity-40">${hideGan || ''}</span>
                 </div>
             `;
         }
@@ -255,68 +194,67 @@
                 const d = parseInt(document.getElementById('inputDay').value);
                 const hh = parseInt(document.getElementById('inputHour').value);
                 const mm = parseInt(document.getElementById('inputMin').value);
-                
-                // 核心：使用 Solar 对象
-                const S = window.Solar || Solar;
-                const L = window.Lunar || Lunar;
+                const gender = document.querySelector('input[name="gender"]:checked').value;
+                localStorage.setItem('bazi_last_input', JSON.stringify({ y, m, d, hh, mm, gender }));
 
-                if (!S || !L) {
-                    console.error("核心算法库未加载成功");
-                    alert("本地算法库未就绪，请确保文件夹中有 lunar.js 和 tailwind.min.css");
-                    return;
-                }
+                const S = window.Solar || Solar, L = window.Lunar || Lunar, LU = window.LunarUtil || LunarUtil;
+                const solar = S.fromYmdHms(y, m, d, hh, mm, 0), lunar = L.fromSolar(solar), baZi = lunar.getEightChar();
 
-                const solar = S.fromYmdHms(y, m, d, hh, mm, 0);
-                const lunar = L.fromSolar(solar);
-                const baZi = lunar.getEightChar();
+                let startHour = hh % 2 === 0 ? hh - 1 : hh;
+                if (startHour === -1) startHour = 23;
+                document.getElementById('shichenInfo').innerText = `时辰范围：${String(startHour).padStart(2, '0')}:00 ~ ${String((startHour+2)%24).padStart(2, '0')}:00`;
 
-                // 1. 中心信息
-                const basicInfo = document.getElementById('basicInfo');
-                basicInfo.innerHTML = `
-                    <div class="text-lg font-bold">${solar.toYmd()} ${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}</div>
-                    <div class="text-yellow-900">农历 ${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}</div>
-                    <div class="flex justify-center space-x-2 text-sm">
-                        <span class="bg-yellow-100 px-2 py-0.5 rounded">生肖：${lunar.getYearShengXiao()}</span>
-                        <span class="bg-yellow-100 px-2 py-0.5 rounded">星座：${solar.getXingZuo()}座</span>
+                document.getElementById('basicInfo').innerHTML = `
+                    <div class="text-base font-bold">${solar.toYmd()} ${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}</div>
+                    <div class="text-sm text-yellow-900">${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()} (${baZi.getTimeZhi()}时)</div>
+                    <div class="flex justify-center space-x-1 text-[10px] mt-1">
+                        <span class="bg-yellow-100 px-1 rounded">生肖：${lunar.getYearShengXiao()}</span>
+                        <span class="bg-yellow-100 px-1 rounded">星座：${solar.getXingZuo()}</span>
+                        <span class="bg-yellow-100 px-1 rounded">性别：${gender === '1' ? '男' : '女'}</span>
                     </div>
                 `;
 
-                // 2. 八字渲染
-                const baziDisplay = document.getElementById('baziDisplay');
-                baziDisplay.innerHTML = `
-                    ${renderPillar('年柱', baZi.getYearGan(), baZi.getYearZhi())}
-                    ${renderPillar('月柱', baZi.getMonthGan(), baZi.getMonthZhi())}
-                    ${renderPillar('日柱', baZi.getDayGan(), baZi.getDayZhi(), true)}
-                    ${renderPillar('时柱', baZi.getTimeGan(), baZi.getTimeZhi())}
+                document.getElementById('baziDisplay').innerHTML = `
+                    ${renderPillar('年', baZi.getYearGan(), baZi.getYearZhi(), baZi.getYearHideGan().join(''))}
+                    ${renderPillar('月', baZi.getMonthGan(), baZi.getMonthZhi(), baZi.getMonthHideGan().join(''))}
+                    ${renderPillar('日', baZi.getDayGan(), baZi.getDayZhi(), baZi.getDayHideGan().join(''), true)}
+                    ${renderPillar('时', baZi.getTimeGan(), baZi.getTimeZhi(), baZi.getTimeHideGan().join(''))}
                 `;
 
-                // 3. 12宫位地支同步
                 BRANCHES.forEach((branch, index) => {
                     const cell = document.getElementById(`pos-${index}`);
-                    const isTimeZhi = baZi.getTimeZhi() === branch;
-                    const isYearZhi = baZi.getYearZhi() === branch;
-                    
-                    let tags = '';
-                    if (isTimeZhi) tags += `<span class="bg-red-700 text-white text-[10px] px-1 rounded">时</span>`;
-                    if (isYearZhi) tags += `<span class="bg-yellow-700 text-white text-[10px] px-1 rounded ml-1">年</span>`;
-
+                    const isTimeZhi = baZi.getTimeZhi() === branch, isYearZhi = baZi.getYearZhi() === branch;
                     cell.innerHTML = `
-                        <div class="flex justify-between items-start">
-                            <span class="text-xl font-bold ${getWuXingClass(branch)}">${branch}</span>
-                            <div class="flex flex-col items-end">${tags}</div>
+                        <div class="flex justify-between items-start leading-tight">
+                            <span class="text-lg font-bold ${getWuXingClass(branch)}">${branch}</span>
+                            <div class="flex flex-col items-end">${isTimeZhi?'<span class="bg-red-700 text-white text-[8px] px-1 rounded">时</span>':''}${isYearZhi?'<span class="bg-yellow-700 text-white text-[8px] px-1 rounded ml-0.5">年</span>':''}</div>
                         </div>
-                        <div class="text-[10px] text-yellow-900 opacity-30 text-right">
-                            ${index + 1}宫
-                        </div>
+                        <div class="text-[9px] text-yellow-900 opacity-20 text-right">${branch}宫</div>
                     `;
-                    
-                    cell.style.backgroundColor = isTimeZhi ? "rgba(254, 243, 199, 1)" : "";
+                    cell.style.backgroundColor = isTimeZhi ? "rgba(254, 243, 199, 0.8)" : "";
                 });
 
-            } catch (error) {
-                console.error("排盘出错:", error);
-                alert("排盘发生错误，请检查输入格式或控制台。");
-            }
+                const mdText = `### 灵犀命理排盘报告\n\n` +
+                    `- **公历**: ${solar.toYmd()} ${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}\n` +
+                    `- **农历**: ${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()}\n` +
+                    `- **性别**: ${gender === '1' ? '男 (乾造)' : '女 (坤造)'}\n` +
+                    `- **生肖**: ${lunar.getYearShengXiao()} (${lunar.getYearNaYin()})\n` +
+                    `- **星座**: ${solar.getXingZuo()}座\n\n` +
+                    `#### 生辰八字\n` +
+                    `| 四柱 | 年柱 | 月柱 | 日柱 | 时柱 |\n| :--- | :--- | :--- | :--- | :--- |\n` +
+                    `| **干支** | ${baZi.getYearGan()}${baZi.getYearZhi()} | ${baZi.getMonthGan()}${baZi.getMonthZhi()} | ${baZi.getDayGan()}${baZi.getDayZhi()} | ${baZi.getTimeGan()}${baZi.getTimeZhi()} |\n` +
+                    `| **纳音** | ${lunar.getYearNaYin()} | ${lunar.getMonthNaYin()} | ${lunar.getDayNaYin()} | ${lunar.getTimeNaYin()} |\n` +
+                    `| **藏干** | ${baZi.getYearHideGan().join('')} | ${baZi.getMonthHideGan().join('')} | ${baZi.getDayHideGan().join('')} | ${baZi.getTimeHideGan().join('')} |\n\n` +
+                    `---\n*本报告由灵犀排盘生成*`;
+                document.getElementById('mdOutput').value = mdText;
+            } catch (e) { console.error(e); }
+        }
+
+        function copyMd() {
+            const area = document.getElementById('mdOutput');
+            area.select();
+            document.execCommand('copy');
+            alert('报告已复制到剪贴板');
         }
     </script>
 </body>

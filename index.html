@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -17,151 +18,260 @@
     <script src="js/ziwei.js"></script>
     <script src="js/app.js"></script>
 </head>
-<body class="p-1 md:p-4 h-screen overflow-hidden flex flex-col">
-    <div class="max-w-6xl mx-auto flex-grow flex flex-col w-full h-full min-h-0">
-        <header class="text-center mb-1 shrink-0">
+
+<body class="p-1 md:p-4 overflow-hidden flex flex-col" style="height: 100vh; height: 100dvh;">
+    <div class="max-w-6xl mx-auto flex-1 flex flex-col w-full h-full min-h-0">
+        <header id="mainHeader" class="text-center mb-1 shrink-0 transition-all duration-300">
             <h1 class="text-lg md:text-2xl font-bold text-yellow-900">问天星算</h1>
         </header>
 
-        <section class="bg-white bg-opacity-50 p-2 rounded shadow-sm border border-yellow-200 mb-1 md:mb-4 shrink-0">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
-                <div class="col-span-1 md:col-span-1">
-                    <div class="flex justify-between items-center mb-0.5">
-                        <label class="block text-[10px] font-bold text-yellow-900">日期</label>
-                        <div class="flex items-center space-x-1 text-[8px] md:text-[9px] text-yellow-700">
-                            <label class="flex items-center cursor-pointer"><input type="radio" name="calType" value="solar" checked class="mr-0.5">公</label>
-                            <label class="flex items-center cursor-pointer"><input type="radio" name="calType" value="lunar" class="mr-0.5">农</label>
+        <!-- 向导输入区：默认居中显示 -->
+        <div id="wizardContainer"
+            class="flex flex-col flex-grow items-center justify-center -mt-10 md:-mt-20 transition-all duration-500 w-full max-w-2xl mx-auto">
+            <section
+                class="w-full bg-white bg-opacity-80 md:bg-opacity-50 p-3 md:p-6 rounded-lg md:rounded shadow-lg md:shadow-sm border border-yellow-200 mb-1 shrink-0 text-yellow-900">
+                <!-- 步骤 1：日期、时间与性别 -->
+                <div id="step1Container" class="grid grid-cols-1 md:grid-cols-3 gap-2 items-end">
+                    <div class="col-span-1 md:col-span-1">
+                        <div class="flex justify-between items-center mb-0.5">
+                            <label class="block text-[10px] font-bold text-yellow-900">① 生辰日期</label>
+                            <div class="flex items-center space-x-1 text-[8px] md:text-[9px] text-yellow-700">
+                                <label class="flex items-center cursor-pointer"><input type="radio" name="calType"
+                                        value="solar" checked class="mr-0.5">公</label>
+                                <label class="flex items-center cursor-pointer"><input type="radio" name="calType"
+                                        value="lunar" class="mr-0.5">农</label>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-0.5 border-b border-yellow-900 pb-0.5">
+                            <select id="inputYear"
+                                class="bg-transparent text-[13px] md:text-sm font-bold focus:outline-none cursor-pointer flex-grow text-center py-1"></select>
+                            <span class="text-yellow-900 font-bold">-</span>
+                            <select id="inputMonth"
+                                class="bg-transparent text-[13px] md:text-sm font-bold focus:outline-none cursor-pointer flex-grow text-center py-1"></select>
+                            <span class="text-yellow-900 font-bold">-</span>
+                            <select id="inputDay"
+                                class="bg-transparent text-[13px] md:text-sm font-bold focus:outline-none cursor-pointer flex-grow text-center py-1"></select>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-0.5 border-b border-yellow-900 pb-0.5">
-                        <select id="inputYear" class="bg-transparent text-[13px] md:text-xs focus:outline-none cursor-pointer flex-grow text-center py-1"></select>
-                        <span class="text-yellow-900">-</span>
-                        <select id="inputMonth" class="bg-transparent text-[13px] md:text-xs focus:outline-none cursor-pointer flex-grow text-center py-1"></select>
-                        <span class="text-yellow-900">-</span>
-                        <select id="inputDay" class="bg-transparent text-[13px] md:text-xs focus:outline-none cursor-pointer flex-grow text-center py-1"></select>
-                    </div>
-                </div>
-                <div class="col-span-1 md:col-span-1">
-                    <div class="flex justify-between items-center mb-0.5">
-                        <label class="block text-[10px] font-bold text-yellow-900">时间</label>
-                        <label class="flex items-center text-[10px] cursor-pointer text-yellow-700">
-                            <input type="checkbox" id="timeUnknown" class="mr-1 scale-75">不详
-                        </label>
-                    </div>
-                    <div id="timeInputGroup" class="flex items-center space-x-0.5 border-b border-yellow-900 pb-0.5">
-                        <select id="inputHour" class="bg-transparent text-[13px] md:text-xs focus:outline-none cursor-pointer flex-grow text-center py-1"></select>
-                        <span class="text-yellow-900">:</span>
-                        <select id="inputMin" class="bg-transparent text-[13px] md:text-xs focus:outline-none cursor-pointer flex-grow text-center py-1"></select>
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-2 col-span-1 md:col-span-2">
-                    <div>
-                        <label class="block text-[10px] font-bold text-yellow-900 mb-0.5">性别</label>
-                        <div class="flex space-x-2 text-[12px] md:text-xs py-1">
-                            <label class="flex items-center cursor-pointer"><input type="radio" name="gender" value="1" checked class="mr-0.5">男</label>
-                            <label class="flex items-center cursor-pointer"><input type="radio" name="gender" value="0" class="mr-0.5">女</label>
+                    <div class="col-span-1 md:col-span-1">
+                        <div class="flex justify-between items-center mb-0.5">
+                            <label class="block text-[10px] font-bold text-yellow-900">降生时间</label>
+                            <label class="flex items-center text-[10px] cursor-pointer text-yellow-700">
+                                <input type="checkbox" id="timeUnknown" class="mr-1 scale-75">不详
+                            </label>
+                        </div>
+                        <div id="timeInputGroup"
+                            class="flex items-center space-x-0.5 border-b border-yellow-900 pb-0.5">
+                            <select id="inputHour"
+                                class="bg-transparent text-[13px] md:text-sm font-bold focus:outline-none cursor-pointer flex-grow text-center py-1"></select>
+                            <span class="text-yellow-900 font-bold">:</span>
+                            <select id="inputMin"
+                                class="bg-transparent text-[13px] md:text-sm font-bold focus:outline-none cursor-pointer flex-grow text-center py-1"></select>
                         </div>
                     </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-yellow-900 mb-0.5 opacity-0">排盘</label>
-                        <button id="btnCalculate" class="w-full bg-yellow-900 text-white py-1.5 rounded text-xs hover:bg-yellow-800 transition">排盘</button>
+                    <div class="grid grid-cols-2 gap-2 col-span-1 md:col-span-1">
+                        <div>
+                            <label class="block text-[10px] font-bold text-yellow-900 mb-0.5">性别</label>
+                            <div class="flex space-x-2 text-[12px] md:text-sm font-bold py-1">
+                                <label class="flex items-center cursor-pointer"><input type="radio" name="gender"
+                                        value="1" checked class="mr-0.5">男</label>
+                                <label class="flex items-center cursor-pointer"><input type="radio" name="gender"
+                                        value="0" class="mr-0.5">女</label>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-yellow-900 mb-0.5 opacity-0">下一步</label>
+                            <button id="btnNextStep"
+                                class="w-full bg-yellow-100 text-yellow-900 border border-yellow-300 font-bold py-1.5 rounded text-xs hover:bg-yellow-200 transition">下一步</button>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div id="shichenGrid" class="flex flex-wrap gap-1 mt-1.5 border-t border-yellow-100 pt-1.5"></div>
-            <!-- 子时处理选项 (仅在 23:00-23:59 显示) -->
-            <div id="ziHourPanel" class="hidden mt-1.5 p-1.5 bg-red-50 border border-red-200 rounded animate-pulse">
-                <div class="flex items-center justify-between">
-                    <span class="text-[10px] font-bold text-red-900">🌗 检测到子夜降生 (23:00-24:00)</span>
-                    <div class="flex space-x-2 text-[9px]">
-                        <label class="flex items-center cursor-pointer text-red-800"><input type="radio" name="ziSect" value="2" checked class="mr-1 scale-75">古法子初换日</label>
-                        <label class="flex items-center cursor-pointer text-gray-600"><input type="radio" name="ziSect" value="1" class="mr-1 scale-75">保留夜子时</label>
+                <!-- 步骤 1 的副内容：子时处理（原本放外面，现在应属于基础信息一部分但在需要时才出现） -->
+                <div id="shichenGrid" class="flex flex-wrap gap-1 mt-1.5 border-t border-yellow-100 pt-1.5"></div>
+                <!-- 子时处理选项 (仅在 23:00-23:59 显示) -->
+                <div id="ziHourPanel" class="hidden mt-1.5 p-1.5 bg-red-50 border border-red-200 rounded animate-pulse">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-1">
+                        <span class="text-[10px] font-bold text-red-900">🌗 检测到子夜降生 (23:00-24:00)</span>
+                        <div class="flex space-x-2 text-[9px]">
+                            <label class="flex items-center cursor-pointer text-red-800"><input type="radio"
+                                    name="ziSect" value="2" checked class="mr-1 scale-75">古法子初换日</label>
+                            <label class="flex items-center cursor-pointer text-gray-600"><input type="radio"
+                                    name="ziSect" value="1" class="mr-1 scale-75">保留夜子时</label>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 border-t border-yellow-100 pt-1.5">
-                <div class="flex items-center space-x-1">
-                    <select id="provinceSel" class="bg-transparent text-[10px] border-b border-yellow-900 focus:outline-none cursor-pointer"></select>
-                    <select id="citySel" class="bg-transparent text-[10px] border-b border-yellow-900 focus:outline-none cursor-pointer"></select>
-                    <select id="distSel" class="bg-transparent text-[10px] border-b border-yellow-900 focus:outline-none cursor-pointer"></select>
-                </div>
-                <div id="shichenInfo" class="text-[9px] text-red-800 opacity-80 font-mono flex items-center space-x-2"></div>
-                <span id="lngDisplay" class="text-[9px] text-red-800 opacity-80 font-mono ml-2"></span>
-                <label class="flex items-center text-[10px] cursor-pointer text-red-900 font-bold ml-auto">
-                    <input type="checkbox" id="useSolarTime" class="mr-1 scale-75">真太阳时
-                </label>
-            </div>
-        </section>
 
-        <div class="flex md:hidden border-b border-yellow-200 mb-2 shrink-0">
-            <button onclick="switchTab('chart')" id="tabBtn-chart" class="flex-1 py-2 text-xs font-bold border-b-2 border-yellow-900 text-yellow-900">命盘网格</button>
-            <button onclick="switchTab('report')" id="tabBtn-report" class="flex-1 py-2 text-xs font-bold border-b-2 border-transparent text-gray-400">文字报告</button>
+                <!-- 步骤 2：出生地与排盘 (初始隐藏) -->
+                <div id="step2Container" class="hidden mt-3 md:mt-4 pt-3 border-t-2 border-yellow-200">
+                    <div class="flex flex-col md:flex-row md:items-end gap-2 md:gap-4">
+                        <div class="flex-grow">
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="block text-[10px] md:text-xs font-bold text-yellow-900">② 出生地校正
+                                    (影响生辰分界)</label>
+                                <label
+                                    class="flex items-center text-[10px] cursor-pointer text-red-900 font-bold bg-red-50 px-1 py-0.5 rounded border border-red-200 hover:bg-red-100 transition whitespace-nowrap">
+                                    <input type="checkbox" id="useSolarTime" class="mr-1 scale-75">启用真太阳时修正
+                                </label>
+                            </div>
+                            <div class="grid grid-cols-3 gap-1 md:gap-2 border-b border-yellow-900 pb-0.5">
+                                <select id="provinceSel"
+                                    class="bg-transparent text-[12px] md:text-sm font-bold focus:outline-none cursor-pointer py-1"></select>
+                                <select id="citySel"
+                                    class="bg-transparent text-[12px] md:text-sm font-bold focus:outline-none cursor-pointer py-1"></select>
+                                <select id="distSel"
+                                    class="bg-transparent text-[12px] md:text-sm font-bold focus:outline-none cursor-pointer py-1"></select>
+                            </div>
+                            <div class="mt-1 flex justify-between items-center">
+                                <span id="lngDisplay" class="text-[10px] text-red-800 opacity-80 font-mono"></span>
+                                <div id="shichenInfo" class="text-[10px] text-red-800 font-bold flex items-center h-4">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex w-full md:w-48 space-x-2 md:mt-0 mt-2 shrink-0">
+                            <button id="btnPrevStep"
+                                class="w-1/3 md:w-16 bg-gray-100 text-gray-600 font-bold py-2 rounded text-sm md:text-base border border-gray-300 hover:bg-gray-200 transition">返回</button>
+                            <button id="btnCalculate"
+                                class="flex-grow bg-yellow-900 text-white font-bold py-2 rounded text-sm md:text-base border-2 border-yellow-900 hover:bg-yellow-800 hover:border-yellow-800 shadow-md transition transform active:scale-95">⚔️
+                                立即排盘</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
 
-        <div class="flex flex-col md:flex-row gap-2 md:gap-4 flex-grow overflow-hidden min-h-0">
-            <div id="tab-chart" class="tab-content active-grid flex-grow grid grid-cols-4 grid-rows-4 gap-1 md:gap-2 h-full">
-                <div id="pos-5" class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30"></div>
-                <div id="pos-6" class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30"></div>
-                <div id="pos-7" class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30"></div>
-                <div id="pos-8" class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30"></div>
-                <div id="pos-4" class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30"></div>
-                <div class="col-span-2 row-span-2 bg-white bg-opacity-80 chinese-border p-1 md:p-2 center-info flex flex-col items-center justify-center text-center relative z-50">
-                    <div id="basicInfo" class="space-y-0.5 w-full"></div>
-                    <div id="baziDisplay" class="mt-1 flex space-x-0.5 md:space-x-2 border-t border-yellow-100 pt-1 w-full justify-around min-h-[45px] md:min-h-[60px]"></div>
+        <!-- 结果展示区：默认隐藏 -->
+        <div id="resultContainer" class="hidden flex flex-col h-full flex-1 min-h-0 w-full animate-fade-in relative">
+            <div class="flex justify-between items-center mb-2 shrink-0 md:px-2">
+                <button id="btnModifyInfo"
+                    class="bg-white bg-opacity-80 border border-yellow-300 text-yellow-900 text-xs px-3 py-1 rounded shadow-sm hover:bg-yellow-50 transition flex items-center font-bold">
+                    <span class="mr-1">←</span> 修改信息
+                </button>
+                <div class="flex md:hidden border-b border-yellow-200 w-full max-w-[200px] ml-auto">
+                    <button onclick="switchTab('chart')" id="tabBtn-chart"
+                        class="flex-1 py-1 text-[10px] font-bold border-b-2 border-yellow-900 text-yellow-900">命盘</button>
+                    <button onclick="switchTab('report')" id="tabBtn-report"
+                        class="flex-1 py-1 text-[10px] font-bold border-b-2 border-transparent text-gray-400">报告</button>
                 </div>
-                <div id="pos-9" class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30"></div>
-                <div id="pos-3" class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30"></div>
-                <div id="pos-10" class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30"></div>
-                <div id="pos-2" class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30"></div>
-                <div id="pos-1" class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30"></div>
-                <div id="pos-0" class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30"></div>
-                <div id="pos-11" class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30"></div>
             </div>
 
-            <div id="tab-report" class="tab-content md:flex w-full md:w-80 flex-col shrink-0 border-l-0 md:border-l border-yellow-200 md:pl-4 h-full overflow-hidden">
-                <div class="flex justify-between items-center mb-1 shrink-0">
-                    <label class="text-[10px] font-bold text-yellow-900">Markdown 报告配置</label>
-                    <button onclick="copyMd()" id="copyBtn" class="bg-yellow-900 text-white px-2 py-0.5 rounded text-[10px] hover:bg-yellow-800 transition">复制报告</button>
-                </div>
-
-                <!-- 排盘种类选择 -->
-                <div class="mb-1.5">
-                    <p class="text-[8px] text-gray-400 mb-1 uppercase tracking-wider">选择排盘种类</p>
-                    <div class="flex flex-wrap gap-2 text-[10px] text-yellow-900 font-bold">
-                        <label class="flex items-center cursor-pointer"><input type="checkbox" id="showBazi" checked class="mr-1 scale-75">八字</label>
-                        <label class="flex items-center cursor-pointer"><input type="checkbox" id="showZiwei" checked class="mr-1 scale-75">紫微</label>
-                        <label class="flex items-center cursor-pointer"><input type="checkbox" id="showAstro" checked class="mr-1 scale-75">星座</label>
+            <div class="flex flex-col md:flex-row gap-2 md:gap-4 flex-1 overflow-hidden min-h-0">
+                <div id="tab-chart"
+                    class="tab-content active-grid flex-1 grid grid-cols-4 grid-rows-4 gap-1 md:gap-2 h-full">
+                    <div id="pos-5"
+                        class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30">
+                    </div>
+                    <div id="pos-6"
+                        class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30">
+                    </div>
+                    <div id="pos-7"
+                        class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30">
+                    </div>
+                    <div id="pos-8"
+                        class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30">
+                    </div>
+                    <div id="pos-4"
+                        class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30">
+                    </div>
+                    <div
+                        class="col-span-2 row-span-2 bg-white bg-opacity-80 chinese-border p-1 md:p-2 center-info flex flex-col items-center justify-center text-center relative z-50">
+                        <div id="basicInfo" class="space-y-0.5 w-full"></div>
+                        <div id="baziDisplay"
+                            class="mt-1 flex space-x-0.5 md:space-x-2 border-t border-yellow-100 pt-1 w-full justify-around min-h-[45px] md:min-h-[60px]">
+                        </div>
+                    </div>
+                    <div id="pos-9"
+                        class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30">
+                    </div>
+                    <div id="pos-3"
+                        class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30">
+                    </div>
+                    <div id="pos-10"
+                        class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30">
+                    </div>
+                    <div id="pos-2"
+                        class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30">
+                    </div>
+                    <div id="pos-1"
+                        class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30">
+                    </div>
+                    <div id="pos-0"
+                        class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30">
+                    </div>
+                    <div id="pos-11"
+                        class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30">
                     </div>
                 </div>
-                
-                <!-- 第一组：风格选择 -->
-                <div class="mb-1.5">
-                    <p class="text-[8px] text-gray-400 mb-1 uppercase tracking-wider">设定解盘风格</p>
-                    <div class="flex flex-wrap gap-1">
-                        <button onclick="setReportStyle('cure')" id="style-cure" class="style-btn active-style text-[9px] px-1.5 py-0.5 rounded border border-yellow-300 bg-yellow-100 text-yellow-900">✨ 闺蜜</button>
-                        <button onclick="setReportStyle('pro')" id="style-pro" class="style-btn text-[9px] px-1.5 py-0.5 rounded border border-yellow-100 text-gray-500">⚖️ 专业</button>
-                        <button onclick="setReportStyle('sharp')" id="style-sharp" class="style-btn text-[9px] px-1.5 py-0.5 rounded border border-yellow-100 text-gray-500">🚀 犀利</button>
-                        <button onclick="setReportStyle('mystic')" id="style-mystic" class="style-btn text-[9px] px-1.5 py-0.5 rounded border border-yellow-100 text-gray-500">🔮 灵性</button>
-                    </div>
-                </div>
 
-                <!-- 第二组：需求选择 -->
-                <div class="mb-2">
-                    <p class="text-[8px] text-gray-400 mb-1 uppercase tracking-wider">设定分析侧重</p>
-                    <div class="flex flex-wrap gap-1">
-                        <button onclick="setReportGoal('all')" id="goal-all" class="goal-btn active-goal text-[9px] px-1.5 py-0.5 rounded border border-yellow-300 bg-yellow-100 text-yellow-900">🌈 全面</button>
-                        <button onclick="setReportGoal('love')" id="goal-love" class="goal-btn text-[9px] px-1.5 py-0.5 rounded border border-yellow-100 text-gray-500">💑 情感</button>
-                        <button onclick="setReportGoal('career')" id="goal-career" class="goal-btn text-[9px] px-1.5 py-0.5 rounded border border-yellow-100 text-gray-500">💰 事业</button>
-                        <button onclick="setReportGoal('transit')" id="goal-transit" class="goal-btn text-[9px] px-1.5 py-0.5 rounded border border-yellow-100 text-gray-500">📅 运势</button>
+                <div id="tab-report"
+                    class="tab-content md:flex w-full md:w-80 flex-col h-full flex-1 md:flex-none shrink-0 border-l-0 md:border-l border-yellow-200 md:pl-4 min-h-0 overflow-hidden">
+                    <div class="flex justify-between items-center mb-1 shrink-0">
+                        <label class="text-[10px] font-bold text-yellow-900">Markdown 报告配置</label>
+                        <button onclick="copyMd()" id="copyBtn"
+                            class="bg-yellow-900 text-white px-2 py-0.5 rounded text-[10px] hover:bg-yellow-800 transition">复制报告</button>
                     </div>
-                </div>
 
-                <div class="bg-yellow-50 border-l-2 border-yellow-400 p-1.5 mb-2 shrink-0">
-                    <p class="text-[9px] text-yellow-800 leading-tight" id="styleHint">💡 提示：当前风格：✨ 闺蜜 | 侧重：🌈 全面</p>
+                    <!-- 排盘种类选择 -->
+                    <div class="mb-1.5">
+                        <p class="text-[8px] text-gray-400 mb-1 uppercase tracking-wider">选择排盘种类</p>
+                        <div class="flex flex-wrap gap-2 text-[10px] text-yellow-900 font-bold">
+                            <label class="flex items-center cursor-pointer"><input type="checkbox" id="showBazi" checked
+                                    class="mr-1 scale-75">八字</label>
+                            <label class="flex items-center cursor-pointer"><input type="checkbox" id="showZiwei"
+                                    checked class="mr-1 scale-75">紫微</label>
+                            <label class="flex items-center cursor-pointer"><input type="checkbox" id="showAstro"
+                                    checked class="mr-1 scale-75">星座</label>
+                        </div>
+                    </div>
+
+                    <!-- 第一组：风格选择 -->
+                    <div class="mb-1.5">
+                        <p class="text-[8px] text-gray-400 mb-1 uppercase tracking-wider">设定解盘风格</p>
+                        <div class="flex flex-wrap gap-1">
+                            <button onclick="setReportStyle('cure')" id="style-cure"
+                                class="style-btn active-style text-[9px] px-1.5 py-0.5 rounded border border-yellow-300 bg-yellow-100 text-yellow-900">✨
+                                闺蜜</button>
+                            <button onclick="setReportStyle('pro')" id="style-pro"
+                                class="style-btn text-[9px] px-1.5 py-0.5 rounded border border-yellow-100 text-gray-500">⚖️
+                                专业</button>
+                            <button onclick="setReportStyle('sharp')" id="style-sharp"
+                                class="style-btn text-[9px] px-1.5 py-0.5 rounded border border-yellow-100 text-gray-500">🚀
+                                犀利</button>
+                            <button onclick="setReportStyle('mystic')" id="style-mystic"
+                                class="style-btn text-[9px] px-1.5 py-0.5 rounded border border-yellow-100 text-gray-500">🔮
+                                灵性</button>
+                        </div>
+                    </div>
+
+                    <!-- 第二组：需求选择 -->
+                    <div class="mb-2">
+                        <p class="text-[8px] text-gray-400 mb-1 uppercase tracking-wider">设定分析侧重</p>
+                        <div class="flex flex-wrap gap-1">
+                            <button onclick="setReportGoal('all')" id="goal-all"
+                                class="goal-btn active-goal text-[9px] px-1.5 py-0.5 rounded border border-yellow-300 bg-yellow-100 text-yellow-900">🌈
+                                全面</button>
+                            <button onclick="setReportGoal('love')" id="goal-love"
+                                class="goal-btn text-[9px] px-1.5 py-0.5 rounded border border-yellow-100 text-gray-500">💑
+                                情感</button>
+                            <button onclick="setReportGoal('career')" id="goal-career"
+                                class="goal-btn text-[9px] px-1.5 py-0.5 rounded border border-yellow-100 text-gray-500">💰
+                                事业</button>
+                            <button onclick="setReportGoal('transit')" id="goal-transit"
+                                class="goal-btn text-[9px] px-1.5 py-0.5 rounded border border-yellow-100 text-gray-500">📅
+                                运势</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-yellow-50 border-l-2 border-yellow-400 p-1.5 mb-2 shrink-0">
+                        <p class="text-[9px] text-yellow-800 leading-tight" id="styleHint">💡 提示：当前风格：✨ 闺蜜 | 侧重：🌈 全面
+                        </p>
+                    </div>
+                    <textarea id="mdOutput" readonly
+                        class="flex-1 bg-white bg-opacity-50 border border-yellow-200 rounded p-2 text-[10px] font-mono focus:outline-none resize-none leading-relaxed overflow-y-auto w-full"></textarea>
                 </div>
-                <textarea id="mdOutput" readonly class="flex-grow bg-white bg-opacity-50 border border-yellow-200 rounded p-2 text-[10px] font-mono focus:outline-none resize-none leading-relaxed overflow-y-auto w-full mb-1"></textarea>
             </div>
         </div>
     </div>
 </body>
+
 </html>

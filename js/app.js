@@ -226,6 +226,13 @@ function updateDisplay() {
         const lunar = Lunar.fromSolar(cSol), baZi = lunar.getEightChar();
         baZi.setSect(ziSect); // 设置子时流派
 
+        // --- 核心改进：处理显示用的农历日期 ---
+        // 如果是古法换日且处于 23 点后，显示用的农历对象应指向第二天
+        let displayLunar = lunar;
+        if (isLateZi && ziSect === 2) {
+            displayLunar = Lunar.fromSolar(cSol.next(1));
+        }
+
         const yun = baZi.getYun(gen === '1' ? 1 : 0);
         const startSolar = yun.getStartSolar();
         const dayuns = yun.getDaYun();
@@ -321,12 +328,12 @@ function updateDisplay() {
         } else { document.getElementById('shichenInfo').innerText = "出生时辰不详"; }
 
         const astroInfo = showAstro ? `<span class="cursor-help" data-tip="太阳星座：代表一个人的基本性格。${sunSignData.isCusp ? '\\n⚠️' + sunSignData.cuspDetail : ''}">${sunSignData.name}${sunSignData.isCusp ? '*' : ''}</span><span class="text-red-800 font-bold cursor-help" data-tip="上升星座：代表给人的第一印象。">(${asc}座)</span>` : '';
-        document.getElementById('basicInfo').innerHTML = `<div class="text-[12px] md:text-[13px] font-bold">${cSol.toYmd()} ${unk ? '' : String(cSol.getHour()).padStart(2, '0')+':'+String(cSol.getMinute()).padStart(2, '0')}</div><div class="text-[10px] md:text-[11px] text-yellow-900">${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()} ${unk ? '' : '('+baZi.getTimeZhi()+'时)'}</div><div class="flex flex-wrap justify-center gap-x-1 text-[8px] md:text-[9px] mt-0.5 opacity-80"><span>${lunar.getYearShengXiao()}</span>${astroInfo}</div>`;
+        document.getElementById('basicInfo').innerHTML = `<div class="text-[12px] md:text-[13px] font-bold">${cSol.toYmd()} ${unk ? '' : String(cSol.getHour()).padStart(2, '0')+':'+String(cSol.getMinute()).padStart(2, '0')}</div><div class="text-[10px] md:text-[11px] text-yellow-900">${displayLunar.getMonthInChinese()}月 ${displayLunar.getDayInChinese()} ${unk ? '' : '('+baZi.getTimeZhi()+'时)'}</div><div class="flex flex-wrap justify-center gap-x-1 text-[8px] md:text-[9px] mt-0.5 opacity-80"><span>${displayLunar.getYearShengXiao()}</span>${astroInfo}</div>`;
         
         const baziEl = document.getElementById('baziDisplay');
         if (showBazi) {
             baziEl.style.display = 'flex';
-            baziEl.innerHTML = `${renderPillar('年', baZi.getYearGan(), baZi.getYearZhi(), baZi.getYearHideGan().join(''), baZi.getYearShiShenGan(), baZi.getYearShiShenZhi()[0], lunar.getYearNaYin())}${renderPillar('月', baZi.getMonthGan(), baZi.getMonthZhi(), baZi.getMonthHideGan().join(''), baZi.getMonthShiShenGan(), baZi.getMonthShiShenZhi()[0], lunar.getMonthNaYin())}${renderPillar('日', baZi.getDayGan(), baZi.getDayZhi(), baZi.getDayHideGan().join(''), '日主', baZi.getDayShiShenZhi()[0], lunar.getDayNaYin(), true)}${unk ? '<div class="flex flex-col items-center opacity-20"><span class="text-[9px] text-yellow-800">时</span><span class="text-xl font-bold text-gray-300">?</span></div>' : renderPillar('时', baZi.getTimeGan(), baZi.getTimeZhi(), baZi.getTimeHideGan().join(''), baZi.getTimeShiShenGan(), baZi.getTimeShiShenZhi()[0], lunar.getTimeNaYin())}`;
+            baziEl.innerHTML = `${renderPillar('年', baZi.getYearGan(), baZi.getYearZhi(), baZi.getYearHideGan().join(''), baZi.getYearShiShenGan(), baZi.getYearShiShenZhi()[0], displayLunar.getYearNaYin())}${renderPillar('月', baZi.getMonthGan(), baZi.getMonthZhi(), baZi.getMonthHideGan().join(''), baZi.getMonthShiShenGan(), baZi.getMonthShiShenZhi()[0], displayLunar.getMonthNaYin())}${renderPillar('日', baZi.getDayGan(), baZi.getDayZhi(), baZi.getDayHideGan().join(''), '日主', baZi.getDayShiShenZhi()[0], displayLunar.getDayNaYin(), true)}${unk ? '<div class="flex flex-col items-center opacity-20"><span class="text-[9px] text-yellow-800">时</span><span class="text-xl font-bold text-gray-300">?</span></div>' : renderPillar('时', baZi.getTimeGan(), baZi.getTimeZhi(), baZi.getTimeHideGan().join(''), baZi.getTimeShiShenGan(), baZi.getTimeShiShenZhi()[0], displayLunar.getTimeNaYin())}`;
         } else {
             baziEl.style.display = 'none';
         }
@@ -386,7 +393,7 @@ function updateDisplay() {
 *(系统对大模型的强力指令：经天文高精度校准，命主出生于真太阳时 ${cSol.getHour()}:${String(cSol.getMinute()).padStart(2, '0')}。处于 23:00~24:00 的“夜子时”区间。旧日的太阳已落下，明日的生机正在萌动，天地阴阳之气处于最剧烈的交替之中！)*
 
 - **当前程序采用流派**: [${sectName}] 
-- **系统锁定的日柱**: [${baZi.getDayGan()}${baZi.getDayZhi()}] (${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}) | **系统锁定的时柱**: [${baZi.getTimeGan()}${baZi.getTimeZhi()}]
+- **系统锁定的日柱**: [${baZi.getDayGan()}${baZi.getDayZhi()}] (${displayLunar.getMonthInChinese()}月${displayLunar.getDayInChinese()}) | **系统锁定的时柱**: [${baZi.getTimeGan()}${baZi.getTimeZhi()}]
 *(⚠️ 警告大模型：你必须绝对信任上述日柱数据，切勿自行讨论换日问题！)*
 `;
         }
@@ -396,9 +403,9 @@ function updateDisplay() {
 ---
 ### 📅 基础档案
 - **时间**: ${cSol.toYmd()} ${unk ? '（不详）' : String(cSol.getHour()).padStart(2, '0')+':'+String(cSol.getMinute()).padStart(2, '0')}
-- **农历**: ${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()}
+- **农历**: ${displayLunar.getYearInChinese()}年 ${displayLunar.getMonthInChinese()}月 ${displayLunar.getDayInChinese()}
 - **修正**: 真太阳修正 ${off.total.toFixed(2)}m (已应用)
-- **核心**: **${genderTerm}** / ${lunar.getYearShengXiao()} / ${lunar.getYearNaYin()} ${showAstro ? '/ 上升'+asc+'座' : ''}
+- **核心**: **${genderTerm}** / ${displayLunar.getYearShengXiao()} / ${displayLunar.getYearNaYin()} ${showAstro ? '/ 上升'+asc+'座' : ''}
 ${edgeCaseMd}
 ${(showZiwei && zwMd) ? zwMd : ''}
 ${showBazi ? `
@@ -409,7 +416,7 @@ ${showBazi ? `
 | :--- | :--- | :--- | :--- | :--- |
 | **${sc.label}** | ${baZi.getYearShiShenGan()} | ${baZi.getMonthShiShenGan()} | **命主** | ${unk?'?':baZi.getTimeShiShenGan()} |
 | **${sc.code}** | ${baZi.getYearGan()}${baZi.getYearZhi()} | ${baZi.getMonthGan()}${baZi.getMonthZhi()} | ${baZi.getDayGan()}${baZi.getDayZhi()} | ${unk?'??':baZi.getTimeGan()+baZi.getTimeZhi()} |
-| **${sc.element}** | ${lunar.getYearNaYin()} | ${lunar.getMonthNaYin()} | ${lunar.getDayNaYin()} | ${unk?'?':lunar.getTimeNaYin()} |
+| **${sc.element}** | ${displayLunar.getYearNaYin()} | ${displayLunar.getMonthNaYin()} | ${displayLunar.getDayNaYin()} | ${unk?'?':displayLunar.getTimeNaYin()} |
 
 #### 📊 能量参数
 - **五行统计**: ${wxStats}

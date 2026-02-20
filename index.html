@@ -66,6 +66,16 @@
                 </div>
             </div>
             <div id="shichenGrid" class="flex flex-wrap gap-1 mt-1.5 border-t border-yellow-100 pt-1.5"></div>
+            <!-- 子时处理选项 (仅在 23:00-23:59 显示) -->
+            <div id="ziHourPanel" class="hidden mt-1.5 p-1.5 bg-red-50 border border-red-200 rounded animate-pulse">
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-bold text-red-900">🌗 检测到子夜降生 (23:00-24:00)</span>
+                    <div class="flex space-x-2 text-[9px]">
+                        <label class="flex items-center cursor-pointer text-red-800"><input type="radio" name="ziSect" value="2" checked class="mr-1 scale-75">古法子初换日</label>
+                        <label class="flex items-center cursor-pointer text-gray-600"><input type="radio" name="ziSect" value="1" class="mr-1 scale-75">保留夜子时</label>
+                    </div>
+                </div>
+            </div>
             <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 border-t border-yellow-100 pt-1.5">
                 <div class="flex items-center space-x-1">
                     <select id="provinceSel" class="bg-transparent text-[10px] border-b border-yellow-900 focus:outline-none cursor-pointer"></select>

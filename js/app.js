@@ -38,7 +38,7 @@ window.onload = function() {
             const hashData = {};
             for (const [key, value] of params.entries()) {
                 if (['y','m','d','hh','mm'].includes(key)) hashData[key] = parseInt(value);
-                else if (key === 'gender') hashData[key] = value;
+                else if (key === 'gender' || key === 'ziSect') hashData[key] = value;
                 else if (['unknown', 'useSolar', 'showBazi', 'showZiwei', 'showAstro'].includes(key)) hashData[key] = value === 'true';
                 else if (['province','city','district','cal','style','goal'].includes(key)) hashData[key] = decodeURIComponent(value);
             }
@@ -108,6 +108,7 @@ window.onload = function() {
     solarCheck.onchange = updateDisplay;
     unkCheck.onchange = () => { document.getElementById('timeInputGroup').style.opacity = unkCheck.checked ? "0.3" : "1"; updateDisplay(); };
     showBaziCheck.onchange = updateDisplay; showZiweiCheck.onchange = updateDisplay; showAstroCheck.onchange = updateDisplay;
+    document.querySelectorAll('input[name="ziSect"]').forEach(r => r.onchange = updateDisplay);
 
     const shichenGrid = document.getElementById('shichenGrid');
     BRANCHES.forEach((b, i) => {
@@ -123,6 +124,10 @@ window.onload = function() {
     showBaziCheck.checked = lastData.showBazi !== undefined ? lastData.showBazi : true;
     showZiweiCheck.checked = lastData.showZiwei !== undefined ? lastData.showZiwei : true;
     showAstroCheck.checked = lastData.showAstro !== undefined ? lastData.showAstro : true;
+    if (lastData.ziSect) {
+        const targetRadio = document.querySelector(`input[name="ziSect"][value="${lastData.ziSect}"]`);
+        if (targetRadio) targetRadio.checked = true;
+    }
     document.getElementById('timeInputGroup').style.opacity = defUnk ? "0.3" : "1";
     document.querySelector(`input[name="gender"][value="${defGen}"]`).checked = true;
     
@@ -184,8 +189,9 @@ function updateDisplay() {
         const gen = document.querySelector('input[name="gender"]:checked').value, unk = document.getElementById('timeUnknown').checked;
         const prov = document.getElementById('provinceSel').value, city = document.getElementById('citySel').value, dist = document.getElementById('distSel').value, useSolar = document.getElementById('useSolarTime').checked;
         const showBazi = document.getElementById('showBazi').checked, showZiwei = document.getElementById('showZiwei').checked, showAstro = document.getElementById('showAstro').checked;
+        const ziSectValue = document.querySelector('input[name="ziSect"]:checked').value;
         
-        const inputData = { y, m, d, hh, mm, gender: gen, unknown: unk, province: prov, city, district: dist, useSolar, cal: type, showBazi, showZiwei, showAstro };
+        const inputData = { y, m, d, hh, mm, gender: gen, unknown: unk, province: prov, city, district: dist, useSolar, cal: type, showBazi, showZiwei, showAstro, ziSect: ziSectValue };
         localStorage.setItem('bazi_last_input', JSON.stringify(inputData));
         updateHash(inputData);
 
@@ -206,7 +212,20 @@ function updateDisplay() {
             const cD = new Date(new Date(solar.getYear(), solar.getMonth()-1, solar.getDay(), hh, mm).getTime() + off.total * 60000);
             cSol = Solar.fromYmdHms(cD.getFullYear(), cD.getMonth()+1, cD.getDate(), cD.getHours(), cD.getMinutes(), 0);
         }
+
+        // --- 子时流派处理 ---
+        const isLateZi = !unk && cSol.getHour() === 23;
+        const ziHourPanel = document.getElementById('ziHourPanel');
+        if (isLateZi) {
+            ziHourPanel.classList.remove('hidden');
+        } else {
+            ziHourPanel.classList.add('hidden');
+        }
+        const ziSect = parseInt(document.querySelector('input[name="ziSect"]:checked').value);
+
         const lunar = Lunar.fromSolar(cSol), baZi = lunar.getEightChar();
+        baZi.setSect(ziSect); // 设置子时流派
+
         const yun = baZi.getYun(gen === '1' ? 1 : 0);
         const startSolar = yun.getStartSolar();
         const dayuns = yun.getDaYun();
@@ -259,9 +278,15 @@ function updateDisplay() {
         // --- 紫微斗数计算 ---
         let zwData = null;
         if (showZiwei && !unk) {
+            // 紫微斗数规则：子初即换日。如果是 23 点以后，农历日期强制采用“第二天”
+            let zwLunar = lunar;
+            if (cSol.getHour() === 23) {
+                const nextSolar = cSol.next(1);
+                zwLunar = Lunar.fromSolar(nextSolar);
+            }
             zwData = calculateZiWei(
-                Math.abs(lunar.getMonth()), 
-                lunar.getDay(), 
+                Math.abs(zwLunar.getMonth()), 
+                zwLunar.getDay(), 
                 BRANCHES.indexOf(baZi.getTimeZhi()), 
                 GANS.indexOf(baZi.getYearGan())
             );
@@ -352,6 +377,20 @@ function updateDisplay() {
         const sc = STYLE_CONFIG[currentReportStyle];
         const gc = GOAL_CONFIG[currentReportGoal];
 
+        // --- 构造子夜预警 Markdown ---
+        let edgeCaseMd = "";
+        if (isLateZi) {
+            const sectName = ziSect === 2 ? "古法子初换日" : "保留夜子时";
+            edgeCaseMd = `
+### 🌗 【极高危时空预警：子夜交界降生 (Edge Case)】
+*(系统对大模型的强力指令：经天文高精度校准，命主出生于真太阳时 ${cSol.getHour()}:${String(cSol.getMinute()).padStart(2, '0')}。处于 23:00~24:00 的“夜子时”区间。旧日的太阳已落下，明日的生机正在萌动，天地阴阳之气处于最剧烈的交替之中！)*
+
+- **当前程序采用流派**: [${sectName}] 
+- **系统锁定的日柱**: [${baZi.getDayGan()}${baZi.getDayZhi()}] (${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}) | **系统锁定的时柱**: [${baZi.getTimeGan()}${baZi.getTimeZhi()}]
+*(⚠️ 警告大模型：你必须绝对信任上述日柱数据，切勿自行讨论换日问题！)*
+`;
+        }
+
         let mdText = `# 问天星算 · 命理档案 (${sc.name}风格 | ${gc.name}侧重)
 
 ---
@@ -360,6 +399,7 @@ function updateDisplay() {
 - **农历**: ${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()}
 - **修正**: 真太阳修正 ${off.total.toFixed(2)}m (已应用)
 - **核心**: **${genderTerm}** / ${lunar.getYearShengXiao()} / ${lunar.getYearNaYin()} ${showAstro ? '/ 上升'+asc+'座' : ''}
+${edgeCaseMd}
 ${(showZiwei && zwMd) ? zwMd : ''}
 ${showBazi ? `
 ---

@@ -351,7 +351,7 @@ function updateDisplay(isFinal = false) {
             if (dist !== "全境" && coords[2] && coords[2][dist]) coords = coords[2][dist];
         }
         const [lng, lat] = coords;
-        document.getElementById('lngDisplay').innerText = `(${lng.toFixed(2)},${lat.toFixed(2)})`;
+        document.getElementById('lngDisplay').innerText = `东经 ${lng.toFixed(1)}° / 北纬 ${lat.toFixed(1)}°`;
         const off = getSolarTimeOffset(lng, solar.getYear(), solar.getMonth(), solar.getDay());
         let cSol = solar;
         if (useSolar && !unk) {

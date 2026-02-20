@@ -68,6 +68,7 @@ window.onload = function () {
     const hourSel = document.getElementById('inputHour'), minSel = document.getElementById('inputMin');
     const unkCheck = document.getElementById('timeUnknown'), provSel = document.getElementById('provinceSel'), citySel = document.getElementById('citySel'), distSel = document.getElementById('distSel'), solarCheck = document.getElementById('useSolarTime');
     const showBaziCheck = document.getElementById('showBazi'), showZiweiCheck = document.getElementById('showZiwei'), showAstroCheck = document.getElementById('showAstro');
+    const showBaziMobile = document.getElementById('showBaziMobile'), showZiweiMobile = document.getElementById('showZiweiMobile'), showAstroMobile = document.getElementById('showAstroMobile');
 
     for (let i = 1900; i <= 2100; i++) yearSel.add(new Option(i + '年', i, i === defY, i === defY));
     for (let i = 0; i < 24; i++) hourSel.add(new Option(String(i).padStart(2, '0') + '时', i, i === defH, i === defH));
@@ -154,7 +155,12 @@ window.onload = function () {
     provSel.onchange = () => { updateCityOptions(); updateDisplay(false); }; citySel.onchange = () => { updateDistOptions(); updateDisplay(false); }; distSel.onchange = () => updateDisplay(false);
     solarCheck.onchange = () => updateDisplay(false);
     unkCheck.onchange = () => { document.getElementById('timeInputGroup').style.opacity = unkCheck.checked ? "0.3" : "1"; updateDisplay(false); };
-    showBaziCheck.onchange = () => updateDisplay(false); showZiweiCheck.onchange = () => updateDisplay(false); showAstroCheck.onchange = () => updateDisplay(false);
+    showBaziCheck.onchange = () => { showBaziMobile.checked = showBaziCheck.checked; updateDisplay(true); };
+    showZiweiCheck.onchange = () => { showZiweiMobile.checked = showZiweiCheck.checked; updateDisplay(true); };
+    showAstroCheck.onchange = () => { showAstroMobile.checked = showAstroCheck.checked; updateDisplay(true); };
+    showBaziMobile.onchange = () => { showBaziCheck.checked = showBaziMobile.checked; updateDisplay(true); };
+    showZiweiMobile.onchange = () => { showZiweiCheck.checked = showZiweiMobile.checked; updateDisplay(true); };
+    showAstroMobile.onchange = () => { showAstroCheck.checked = showAstroMobile.checked; updateDisplay(true); };
     document.querySelectorAll('input[name="ziSect"]').forEach(r => r.onchange = () => updateDisplay(false));
 
     const shichenGrid = document.getElementById('shichenGrid');
@@ -171,6 +177,9 @@ window.onload = function () {
     showBaziCheck.checked = lastData.showBazi !== undefined ? lastData.showBazi : true;
     showZiweiCheck.checked = lastData.showZiwei !== undefined ? lastData.showZiwei : true;
     showAstroCheck.checked = lastData.showAstro !== undefined ? lastData.showAstro : true;
+    showBaziMobile.checked = showBaziCheck.checked;
+    showZiweiMobile.checked = showZiweiCheck.checked;
+    showAstroMobile.checked = showAstroCheck.checked;
     if (lastData.ziSect) {
         const targetRadio = document.querySelector(`input[name="ziSect"][value="${lastData.ziSect}"]`);
         if (targetRadio) targetRadio.checked = true;
@@ -277,7 +286,7 @@ function setReportStyle(style) {
         active.classList.remove('border-yellow-100', 'text-gray-500');
     }
     updateHint();
-    if (document.getElementById('mdOutput')) updateDisplay(false);
+    if (document.getElementById('mdOutput')) updateDisplay(true);
 }
 
 function setReportGoal(goal) {
@@ -292,7 +301,7 @@ function setReportGoal(goal) {
         active.classList.remove('border-yellow-100', 'text-gray-500');
     }
     updateHint();
-    if (document.getElementById('mdOutput')) updateDisplay(false);
+    if (document.getElementById('mdOutput')) updateDisplay(true);
 }
 
 function updateHint() {

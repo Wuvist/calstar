@@ -156,11 +156,23 @@
             </div>
 
             <div class="flex flex-col md:flex-row gap-2 md:gap-4 flex-1 overflow-hidden min-h-0">
-                <div id="tab-chart"
-                    class="tab-content active-grid flex-1 grid grid-cols-4 grid-rows-4 gap-1 md:gap-2 h-full">
-                    <div id="pos-5"
-                        class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30">
+                <div id="tab-chart" class="tab-content active-grid flex-1 flex flex-col h-full min-h-0">
+                    <!-- 移动端专用的种类选择 (命盘顶端) -->
+                    <div class="md:hidden bg-yellow-50 bg-opacity-80 p-1.5 border-b border-yellow-200 mb-1 shrink-0">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[8px] text-gray-400 uppercase tracking-wider">排盘种类</span>
+                            <div class="flex gap-3 text-[10px] text-yellow-900 font-bold">
+                                <label class="flex items-center cursor-pointer"><input type="checkbox" id="showBaziMobile" checked class="mr-1 scale-75">八字</label>
+                                <label class="flex items-center cursor-pointer"><input type="checkbox" id="showZiweiMobile" checked class="mr-1 scale-75">紫微</label>
+                                <label class="flex items-center cursor-pointer"><input type="checkbox" id="showAstroMobile" checked class="mr-1 scale-75">星座</label>
+                            </div>
+                        </div>
                     </div>
+                    <!-- 核心命盘网格 -->
+                    <div class="flex-1 grid grid-cols-4 grid-rows-4 gap-1 md:gap-2 h-full">
+                        <div id="pos-5"
+                            class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30">
+                        </div>
                     <div id="pos-6"
                         class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30">
                     </div>
@@ -201,18 +213,18 @@
                     <div id="pos-11"
                         class="palace-cell chinese-border p-1 flex flex-col justify-between bg-white bg-opacity-30">
                     </div>
+                </div> <!-- End of core grid -->
+            </div> <!-- End of tab-chart -->
+
+            <div id="tab-report" class="tab-content md:flex hidden flex-col w-full md:w-80 h-full flex-1 md:flex-none shrink-0 border-l-0 md:border-l border-yellow-200 md:pl-4 min-h-0 overflow-y-auto">
+                <div class="flex justify-between items-center mb-1 shrink-0">
+                    <label class="text-[10px] font-bold text-yellow-900">Markdown 报告配置</label>
+                    <button onclick="copyMd()" id="copyBtn"
+                        class="bg-yellow-900 text-white px-2 py-0.5 rounded text-[10px] hover:bg-yellow-800 transition">复制报告</button>
                 </div>
 
-                <div id="tab-report"
-                    class="tab-content md:flex w-full md:w-80 flex-col h-full flex-1 md:flex-none shrink-0 border-l-0 md:border-l border-yellow-200 md:pl-4 min-h-0 overflow-hidden">
-                    <div class="flex justify-between items-center mb-1 shrink-0">
-                        <label class="text-[10px] font-bold text-yellow-900">Markdown 报告配置</label>
-                        <button onclick="copyMd()" id="copyBtn"
-                            class="bg-yellow-900 text-white px-2 py-0.5 rounded text-[10px] hover:bg-yellow-800 transition">复制报告</button>
-                    </div>
-
-                    <!-- 排盘种类选择 -->
-                    <div class="mb-1.5">
+                    <!-- 排盘种类选择 (桌面端显示在侧边栏) -->
+                    <div class="mb-1.5 md:block hidden">
                         <p class="text-[8px] text-gray-400 mb-1 uppercase tracking-wider">选择排盘种类</p>
                         <div class="flex flex-wrap gap-2 text-[10px] text-yellow-900 font-bold">
                             <label class="flex items-center cursor-pointer"><input type="checkbox" id="showBazi" checked

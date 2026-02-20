@@ -131,11 +131,12 @@ body {
     }
 
     .tab-content {
-        display: none !important;
+        display: none;
     }
 
     .tab-content.active-grid {
-        display: grid !important;
+        display: flex !important;
+        flex-direction: column !important;
         height: 100% !important;
         min-height: 0 !important;
     }

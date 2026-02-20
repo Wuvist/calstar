@@ -316,11 +316,14 @@ function updateDisplay() {
                 const zwStars = zwData.starsPos[index];
                 const starHtml = zwStars.map(s => {
                     const isHua = s.includes('[');
-                    return `<span class="${isHua ? 'text-red-600 font-bold' : 'text-yellow-800'}">${s}</span>`;
+                    const starBase = isHua ? s.split('[')[0] : s;
+                    const tip = TERM_DICT[starBase] || '';
+                    return `<span class="${isHua ? 'text-red-600 font-bold' : 'text-yellow-800'} cursor-help" ${tip ? `data-tip="${tip}"` : ''}>${s}</span>`;
                 }).join('<span class="text-gray-300 mx-0.5">,</span>');
+                const palaceTip = TERM_DICT[zwPalace] || '';
                 zwContent = `
                     <div class="mt-1 flex flex-col border-t border-yellow-100 pt-1">
-                        <span class="text-[10px] font-bold text-blue-800">${zwPalace}</span>
+                        <span class="text-[10px] font-bold text-blue-800 cursor-help" ${palaceTip ? `data-tip="${palaceTip}"` : ''}>${zwPalace}</span>
                         <div class="text-[9px] leading-tight flex flex-wrap items-center">${starHtml || '<span class="text-gray-300">空宫</span>'}</div>
                     </div>
                 `;
@@ -337,7 +340,7 @@ function updateDisplay() {
                     </div>
                 </div>
                 ${zwContent}
-                <div class="text-[9px] md:text-[10px] text-yellow-900 text-right mt-auto opacity-30">${pName}</div>
+                <div class="text-[9px] md:text-[10px] text-yellow-900 text-right mt-auto opacity-30 cursor-help" ${TERM_DICT[pName] ? `data-tip="[八字] ${TERM_DICT[pName]}"` : ''}>${pName}</div>
             `;
             cell.style.backgroundColor = isT ? "rgba(254, 243, 199, 0.8)" : "";
             if (pName === '命宫') cell.classList.add('ring-1', 'ring-red-300');

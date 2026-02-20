@@ -1,0 +1,32 @@
+body { font-family: "Noto Serif SC", "Source Han Serif SC", "Source Han Serif CN", "Songti SC", "STSong", "SimSun", serif; background-color: #F5F5DC; color: #2C3E50; -webkit-tap-highlight-color: transparent; font-size: 13px; }
+.chinese-border { border: 1px solid #8B4513; position: relative; }
+.chinese-border::after { content: ''; position: absolute; top: 1px; left: 1px; right: 1px; bottom: 1px; border: 1px solid #8B4513; pointer-events: none; z-index: -1; }
+.palace-cell { transition: all 0.3s ease; min-width: 0; overflow: visible !important; }
+.palace-cell:hover { background-color: #E9E9D0; }
+.color-wood { color: #2D5A27; } .color-fire { color: #C04851; } .color-earth { color: #8B7042; } .color-metal { color: #9D9087; } .color-water { color: #1A1A1A; }
+.pillar-highlight { border-bottom: 2px solid #C04851; }
+
+/* Tooltip 基础样式 */
+[data-tip] { position: relative; cursor: help; z-index: 10; }
+[data-tip]:hover::after {
+    content: attr(data-tip); position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%);
+    padding: 6px 10px; background-color: #FFFDE7 !important; color: #5D4037 !important; font-size: 10px; white-space: pre-wrap;
+    width: 150px; border: 1px solid #8B4513; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    z-index: 9999; line-height: 1.5; font-weight: normal; opacity: 1 !important; visibility: visible; text-align: left;
+}
+
+@media (max-width: 768px) {
+    .center-info, #baziDisplay, #basicInfo { overflow: visible !important; }
+    .tab-content { display: none !important; }
+    .tab-content.active-grid { display: grid !important; }
+    .tab-content.active-flex { display: flex !important; }
+    
+    .palace-cell { aspect-ratio: 1 / 1.1; padding: 2px !important; }
+    .palace-cell span.text-lg { font-size: 1rem !important; }
+    .center-info { padding: 4px !important; }
+    #basicInfo, #baziDisplay { transform: scale(0.9); transform-origin: center top; width: 100%; }
+    #baziDisplay span.text-xl { font-size: 1rem !important; }
+    #baziDisplay .text-[9px], #baziDisplay .text-[8px] { font-size: 7px !important; transform: scale(0.9); }
+    #shichenInfo { font-size: 8px !important; line-height: 1; }
+    .sc-btn { padding: 2px 4px !important; font-size: 8px !important; }
+}

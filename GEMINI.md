@@ -10,9 +10,17 @@ Calstar (问天星算) 是一个高性能、单文件的本地网页程序，专
 - **Styling:** 使用 Noto Serif SC 衬线体，营造典雅的阅读体验。
 
 ## Directory Overview
-- `index.html`: 核心主程序，包含 UI 结构、交互逻辑及渲染引擎。
-- `lunar.js`: 离线版历法核心算法库。
-- `tailwind.min.css`: 离线版 CSS 样式库。
+- `index.html`: 核心主程序骨架，负责 UI 布局与脚本挂载。
+- `js/`: 模块化脚本目录。
+  - `app.js`: UI 驱动与核心交互逻辑。
+  - `astro.js`: AstroEngine 高精度星历引擎。
+  - `bazi.js`: 八字命理核心推算逻辑。
+  - `config.js`: 全局配置、字典与常量。
+  - `geo.js`: 地理坐标、真太阳时与恒星时计算。
+  - `data_city.js`: 全国三级经纬度地理数据库。
+- `css/style.css`: 自定义中式审美样式表。
+- `lunar.js`: 离线版历法核心算法库（第三方）。
+- `tailwind.min.css`: 离线版 Tailwind CSS 库。
 - `GEMINI.md`: 本项目指令集与开发上下文。
 
 ## Key Features
@@ -35,13 +43,13 @@ Calstar (问天星算) 是一个高性能、单文件的本地网页程序，专
 ## Usage
 ### Running the Project
 本项目不需要任何构建步骤。双击 `index.html` 即可在任何现代浏览器中运行。
-- **环境要求:** 确保 `lunar.js` 和 `tailwind.min.css` 与 `index.html` 位于同一目录下。
+- **环境要求:** 确保 `lunar.js`、`tailwind.min.css`、`js/` 目录及 `css/` 目录与 `index.html` 位于同一目录下。
 - **真太阳时校对:** 输入公历时间后，观察中心区域显示的“时辰范围”，若输入时间接近边界，建议根据所在地经度进行增减校对。
 
 ### Development Conventions
 - **离线优先:** 严禁引入外部 CDN 资源，所有依赖必须保持本地化。
-- **样式规范:** 优先使用 Tailwind Utility Classes，特定中式样式定义在 `<style>` 标签中。
-- **性能优化:** 保持单文件架构，逻辑应尽量精简。
+- **模块化架构:** 保持逻辑解耦，新增功能需按职责放入 `js/` 目录下相应的模块中。
+- **样式规范:** 优先使用 Tailwind Utility Classes，特定中式样式定义在 `css/style.css` 中。
 - **数据结构:** 使用 `localStorage` (key: `bazi_last_input`) 存储用户输入状态。
 
 ## Future TODOs

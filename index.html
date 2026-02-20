@@ -117,8 +117,10 @@
                                 <label class="block text-[10px] md:text-xs font-bold text-yellow-900">② 出生地校正
                                     (影响生辰分界)</label>
                                 <label
-                                    class="flex items-center text-[10px] cursor-pointer text-red-900 font-bold bg-red-50 px-1 py-0.5 rounded border border-red-200 hover:bg-red-100 transition whitespace-nowrap">
-                                    <input type="checkbox" id="useSolarTime" class="mr-1 scale-75">启用真太阳时修正
+                                    class="flex items-center text-[10px] text-red-900 font-bold transition whitespace-nowrap cursor-pointer">
+                                    <input type="checkbox" id="useSolarTime" class="mr-1 scale-75">
+                                    <span class="cursor-help border-b border-dotted border-red-300" 
+                                          data-tip="真太阳时：根据出生地经度与均时差，将北京时间校正为当地实际的太阳运行时刻。这对确定准确的时辰边界至关重要。">启用真太阳时修正</span>
                                 </label>
                             </div>
                             <div class="grid grid-cols-3 gap-1 md:gap-2 border-b border-yellow-900 pb-0.5">

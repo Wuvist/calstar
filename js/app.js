@@ -87,46 +87,67 @@ window.onload = function() {
         }
     }
     function updateDayOptions() {
-        const y = parseInt(yearSel.value), type = getCalType();
-        const prevM = parseInt(monthSel.value), prevD = parseInt(daySel.value);
+        const y = parseInt(yearSel.value) || new Date().getFullYear();
+        const type = getCalType();
+        const prevM = monthSel.value;
+        const prevD = daySel.value;
         
         if (type === 'solar') {
-            if (monthSel.options.length !== 12 || monthSel.options[0].text.indexOf('月') === -1) {
-                monthSel.innerHTML = '';
-                for(let i=1; i<=12; i++) monthSel.add(new Option(String(i).padStart(2, '0') + '月', i));
+            // 确保公历月份是 01-12
+            const isSolar = monthSel.options.length === 12 && monthSel.options[0].text.indexOf('月') !== -1 && monthSel.options[0].text.indexOf('闰') === -1;
+            if (!isSolar) {
+                monthSel.options.length = 0;
+                for(let i=1; i<=12; i++) {
+                    const val = String(i);
+                    monthSel.add(new Option(val.padStart(2, '0') + '月', val));
+                }
+                if (prevM && parseInt(prevM) >= 1 && parseInt(prevM) <= 12) monthSel.value = prevM;
+                else monthSel.value = String(defM || 1);
             }
-            if (!isNaN(prevM)) monthSel.value = prevM;
-            else if (!isNaN(defM)) monthSel.value = defM;
 
             const mVal = parseInt(monthSel.value) || 1;
             const last = new Date(y, mVal, 0).getDate();
-            daySel.innerHTML = '';
-            for(let i=1; i<=last; i++) daySel.add(new Option(String(i).padStart(2, '0') + '日', i));
             
-            if (!isNaN(prevD) && prevD <= last) daySel.value = prevD;
-            else if (!isNaN(defD)) daySel.value = Math.min(defD, last);
-            else daySel.value = 1;
+            // 仅在天数变化时更新
+            if (daySel.options.length !== last) {
+                daySel.options.length = 0;
+                for(let i=1; i<=last; i++) {
+                    const val = String(i);
+                    daySel.add(new Option(val.padStart(2, '0') + '日', val));
+                }
+            }
+            
+            // 恢复日期并限位
+            const targetD = parseInt(prevD) || defD || 1;
+            daySel.value = String(Math.min(targetD, last));
         } else {
             const months = LunarYear.fromYear(y).getMonths();
-            monthSel.innerHTML = '';
-            months.forEach(m => monthSel.add(new Option(m.isLeap() ? "闰" + LUNAR_MONTHS[m.getMonth()-1] : LUNAR_MONTHS[m.getMonth()-1], m.getMonth() * (m.isLeap() ? -1 : 1))));
+            monthSel.options.length = 0;
+            months.forEach(m => monthSel.add(new Option(m.isLeap() ? "闰" + LUNAR_MONTHS[m.getMonth()-1] : LUNAR_MONTHS[m.getMonth()-1], String(m.getMonth() * (m.isLeap() ? -1 : 1)))));
             
-            if (!isNaN(prevM) && Array.from(monthSel.options).some(o => parseInt(o.value) === prevM)) monthSel.value = prevM;
-            else if (!isNaN(defM) && Array.from(monthSel.options).some(o => parseInt(o.value) === defM)) monthSel.value = defM;
+            if (prevM && Array.from(monthSel.options).some(o => o.value === prevM)) monthSel.value = prevM;
+            else if (String(defM) && Array.from(monthSel.options).some(o => o.value === String(defM))) monthSel.value = String(defM);
+            else monthSel.value = monthSel.options[0].value;
 
             const mVal = parseInt(monthSel.value); 
             const m = months.find(mm => mm.getMonth() === Math.abs(mVal) && mm.isLeap() === (mVal < 0)) || months[0];
-            daySel.innerHTML = '';
-            for(let i=1; i<=m.getDayCount(); i++) daySel.add(new Option(LUNAR_DAYS[i-1], i));
+            const dCount = m.getDayCount();
+
+            if (daySel.options.length !== dCount) {
+                daySel.options.length = 0;
+                for(let i=1; i<=dCount; i++) daySel.add(new Option(LUNAR_DAYS[i-1], String(i)));
+            }
             
-            if (!isNaN(prevD) && prevD <= m.getDayCount()) daySel.value = prevD;
-            else daySel.value = 1;
+            const targetD = parseInt(prevD) || defD || 1;
+            daySel.value = String(Math.min(targetD, dCount));
         }
     }
 
-    document.querySelectorAll('input[name="calType"]').forEach(r => r.onchange = () => { updateDayOptions(); });
-    yearSel.onchange = () => { updateDayOptions(); };
-    monthSel.onchange = () => { updateDayOptions(); };
+    const triggerUpdate = () => { updateDayOptions(); };
+    document.querySelectorAll('input[name="calType"]').forEach(r => r.onchange = triggerUpdate);
+    yearSel.onchange = triggerUpdate; monthSel.onchange = triggerUpdate;
+    yearSel.oninput = triggerUpdate; monthSel.oninput = triggerUpdate;
+    
     daySel.onchange = null; hourSel.onchange = null; minSel.onchange = null;
     provSel.onchange = () => { updateCityOptions(); updateDisplay(); }; citySel.onchange = () => { updateDistOptions(); updateDisplay(); }; distSel.onchange = updateDisplay;
     solarCheck.onchange = updateDisplay;

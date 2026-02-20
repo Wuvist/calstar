@@ -87,22 +87,46 @@ window.onload = function() {
         }
     }
     function updateDayOptions() {
-        const y = parseInt(yearSel.value), type = getCalType(); monthSel.innerHTML = ''; daySel.innerHTML = '';
+        const y = parseInt(yearSel.value), type = getCalType();
+        const prevM = parseInt(monthSel.value), prevD = parseInt(daySel.value);
+        
         if (type === 'solar') {
-            for(let i=1; i<=12; i++) monthSel.add(new Option(String(i).padStart(2, '0') + '月', i, i===defM, i===defM));
-            const last = new Date(y, parseInt(monthSel.value), 0).getDate();
-            for(let i=1; i<=last; i++) daySel.add(new Option(String(i).padStart(2, '0') + '日', i, i===Math.min(defD, last), i===Math.min(defD, last)));
+            if (monthSel.options.length !== 12 || monthSel.options[0].text.indexOf('月') === -1) {
+                monthSel.innerHTML = '';
+                for(let i=1; i<=12; i++) monthSel.add(new Option(String(i).padStart(2, '0') + '月', i));
+            }
+            if (!isNaN(prevM)) monthSel.value = prevM;
+            else if (!isNaN(defM)) monthSel.value = defM;
+
+            const mVal = parseInt(monthSel.value) || 1;
+            const last = new Date(y, mVal, 0).getDate();
+            daySel.innerHTML = '';
+            for(let i=1; i<=last; i++) daySel.add(new Option(String(i).padStart(2, '0') + '日', i));
+            
+            if (!isNaN(prevD) && prevD <= last) daySel.value = prevD;
+            else if (!isNaN(defD)) daySel.value = Math.min(defD, last);
+            else daySel.value = 1;
         } else {
             const months = LunarYear.fromYear(y).getMonths();
+            monthSel.innerHTML = '';
             months.forEach(m => monthSel.add(new Option(m.isLeap() ? "闰" + LUNAR_MONTHS[m.getMonth()-1] : LUNAR_MONTHS[m.getMonth()-1], m.getMonth() * (m.isLeap() ? -1 : 1))));
-            const mVal = parseInt(monthSel.value); const m = months.find(mm => mm.getMonth() === Math.abs(mVal) && mm.isLeap() === (mVal < 0)) || months[0];
+            
+            if (!isNaN(prevM) && Array.from(monthSel.options).some(o => parseInt(o.value) === prevM)) monthSel.value = prevM;
+            else if (!isNaN(defM) && Array.from(monthSel.options).some(o => parseInt(o.value) === defM)) monthSel.value = defM;
+
+            const mVal = parseInt(monthSel.value); 
+            const m = months.find(mm => mm.getMonth() === Math.abs(mVal) && mm.isLeap() === (mVal < 0)) || months[0];
+            daySel.innerHTML = '';
             for(let i=1; i<=m.getDayCount(); i++) daySel.add(new Option(LUNAR_DAYS[i-1], i));
+            
+            if (!isNaN(prevD) && prevD <= m.getDayCount()) daySel.value = prevD;
+            else daySel.value = 1;
         }
     }
 
     document.querySelectorAll('input[name="calType"]').forEach(r => r.onchange = () => { updateDayOptions(); updateDisplay(); });
     yearSel.onchange = () => { updateDayOptions(); updateDisplay(); };
-    monthSel.onchange = () => { updateDisplay(); };
+    monthSel.onchange = () => { updateDayOptions(); updateDisplay(); };
     daySel.onchange = updateDisplay; hourSel.onchange = updateDisplay; minSel.onchange = updateDisplay;
     provSel.onchange = () => { updateCityOptions(); updateDisplay(); }; citySel.onchange = () => { updateDistOptions(); updateDisplay(); }; distSel.onchange = updateDisplay;
     solarCheck.onchange = updateDisplay;

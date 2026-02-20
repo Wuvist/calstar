@@ -24,8 +24,8 @@
         </header>
 
         <section class="bg-white bg-opacity-50 p-2 rounded shadow-sm border border-yellow-200 mb-1 md:mb-4 shrink-0">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 items-end">
-                <div class="col-span-1">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
+                <div class="col-span-1 md:col-span-1">
                     <div class="flex justify-between items-center mb-0.5">
                         <label class="block text-[10px] font-bold text-yellow-900">日期</label>
                         <div class="flex items-center space-x-1 text-[8px] md:text-[9px] text-yellow-700">
@@ -33,36 +33,39 @@
                             <label class="flex items-center cursor-pointer"><input type="radio" name="calType" value="lunar" class="mr-0.5">农</label>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-0.5 border-b border-yellow-900">
-                        <select id="inputYear" class="bg-transparent text-[11px] md:text-xs focus:outline-none appearance-none cursor-pointer flex-grow text-center"></select>
+                    <div class="flex items-center space-x-0.5 border-b border-yellow-900 pb-0.5">
+                        <select id="inputYear" class="bg-transparent text-[13px] md:text-xs focus:outline-none cursor-pointer flex-grow text-center py-1"></select>
                         <span class="text-yellow-900">-</span>
-                        <select id="inputMonth" class="bg-transparent text-[11px] md:text-xs focus:outline-none appearance-none cursor-pointer flex-grow text-center"></select>
+                        <select id="inputMonth" class="bg-transparent text-[13px] md:text-xs focus:outline-none cursor-pointer flex-grow text-center py-1"></select>
                         <span class="text-yellow-900">-</span>
-                        <select id="inputDay" class="bg-transparent text-[11px] md:text-xs focus:outline-none appearance-none cursor-pointer flex-grow text-center"></select>
+                        <select id="inputDay" class="bg-transparent text-[13px] md:text-xs focus:outline-none cursor-pointer flex-grow text-center py-1"></select>
                     </div>
                 </div>
-                <div class="col-span-1">
+                <div class="col-span-1 md:col-span-1">
                     <div class="flex justify-between items-center mb-0.5">
                         <label class="block text-[10px] font-bold text-yellow-900">时间</label>
                         <label class="flex items-center text-[10px] cursor-pointer text-yellow-700">
                             <input type="checkbox" id="timeUnknown" class="mr-1 scale-75">不详
                         </label>
                     </div>
-                    <div id="timeInputGroup" class="flex items-center space-x-0.5 border-b border-yellow-900">
-                        <select id="inputHour" class="bg-transparent text-[11px] md:text-xs focus:outline-none appearance-none cursor-pointer flex-grow text-center"></select>
+                    <div id="timeInputGroup" class="flex items-center space-x-0.5 border-b border-yellow-900 pb-0.5">
+                        <select id="inputHour" class="bg-transparent text-[13px] md:text-xs focus:outline-none cursor-pointer flex-grow text-center py-1"></select>
                         <span class="text-yellow-900">:</span>
-                        <select id="inputMin" class="bg-transparent text-[11px] md:text-xs focus:outline-none appearance-none cursor-pointer flex-grow text-center"></select>
+                        <select id="inputMin" class="bg-transparent text-[13px] md:text-xs focus:outline-none cursor-pointer flex-grow text-center py-1"></select>
                     </div>
                 </div>
-                <div class="col-span-1">
-                    <label class="block text-[10px] font-bold text-yellow-900 mb-0.5">性别</label>
-                    <div class="flex space-x-2 text-[11px] md:text-xs py-0.5">
-                        <label class="flex items-center cursor-pointer"><input type="radio" name="gender" value="1" checked class="mr-0.5">男</label>
-                        <label class="flex items-center cursor-pointer"><input type="radio" name="gender" value="0" class="mr-0.5">女</label>
+                <div class="grid grid-cols-2 gap-2 col-span-1 md:col-span-2">
+                    <div>
+                        <label class="block text-[10px] font-bold text-yellow-900 mb-0.5">性别</label>
+                        <div class="flex space-x-2 text-[12px] md:text-xs py-1">
+                            <label class="flex items-center cursor-pointer"><input type="radio" name="gender" value="1" checked class="mr-0.5">男</label>
+                            <label class="flex items-center cursor-pointer"><input type="radio" name="gender" value="0" class="mr-0.5">女</label>
+                        </div>
                     </div>
-                </div>
-                <div class="col-span-1">
-                    <button id="btnCalculate" class="w-full bg-yellow-900 text-white py-1 rounded text-xs hover:bg-yellow-800 transition">重绘</button>
+                    <div>
+                        <label class="block text-[10px] font-bold text-yellow-900 mb-0.5 opacity-0">重绘</label>
+                        <button id="btnCalculate" class="w-full bg-yellow-900 text-white py-1.5 rounded text-xs hover:bg-yellow-800 transition">重绘</button>
+                    </div>
                 </div>
             </div>
             <div id="shichenGrid" class="flex flex-wrap gap-1 mt-1.5 border-t border-yellow-100 pt-1.5"></div>

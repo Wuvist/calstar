@@ -184,91 +184,91 @@ function updateDisplay() {
             else cell.classList.remove('ring-1', 'ring-red-300');
         });
 
-        let mdText = `### 问天星算排盘报告
-
-- **公历**: ${cSol.toYmd()} ${unk ? '不详' : String(cSol.getHour()).padStart(2, '0')+':'+String(cSol.getMinute()).padStart(2, '0')}
-- **地点**: ${prov}-${city} (${lng}, ${lat})
-- **农历**: ${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()}
-- **${unk?'六字':'八字'}**: ${baZi.getYearGan()}${baZi.getYearZhi()}年 ${baZi.getMonthGan()}${baZi.getMonthZhi()}月 ${baZi.getDayGan()}${baZi.getDayZhi()}日${unk?'':' '+baZi.getTimeGan()+baZi.getTimeZhi()+'时'}
-- **真太阳时修正**: ${off.total.toFixed(2)} 分钟
-- **性别**: ${gen==='1'?'男':'女'} / **生肖**: ${lunar.getYearShengXiao()} (${lunar.getYearNaYin()})
-
-### ☯️ 命局高阶内核 (原局骨架与动能)
-- **核心主格局**: **[${mainGe}]** *(系统判定：请以此格局为主线，突出命主在动荡中建功立业的特质、事业野心与性格棱角)*
-- **日主能量气数 (十二长生)**:
-  - ${energies}
-
-### ⚡ 原局空间引力 (刑冲合害深度扫描)
-*(⚠️ 警告 AI：以下为程序绝对确定的原局内部作用，决定了命主一生的动荡与羁绊，大模型切勿自行推测空间关系，严格据此解析)*
-- **天干互动**: ${interactions.gan.length > 0 ? interactions.gan.join(' | ') : '无明显五合四冲'}
-- **地支互动**: 
-  - 💥 **相冲**: ${interactions.zhi.chong.length > 0 ? interactions.zhi.chong.join(', ') : '无'}
-  - 🤝 **合局**: ${[...interactions.zhi.he, ...interactions.zhi.sanhe].join(', ') || '无'}
-  - ⚠️ **相刑/害**: ${[...interactions.zhi.xing, ...interactions.zhi.hai].join(', ') || '无'}
-
-### ⏳ 此时此刻：流年运势精确定位 (立足当前时间)
-*(⚠️ 无论上下文如何，请始终以以下时空节点作为推测“近期运势”的唯一标准基准点)*
-- **当前年份**: ${nowTime.getFullYear()} ${currentYearGZ}年
-- **当前行运**: 第 ${daYunIdx} 步大运 **[${currentDaYun}]** 
-${warnings.length > 0 ? `- **⚠️ 岁运高危预警系统**:\n  - ${warnings.join('\n  - ')}` : '- **岁运状态**: 平稳 (无伏吟/反吟剧烈冲克)'}
-
-### 🪐 占星本命星盘配置 (高精度天文数学推演)
-*(⚠️ 核心天文数据已由本地程序计算完毕，大模型请绝对信任此落座数据，切勿自行推演计算)*
-
-- **[发光体]**
-- **太阳 (Sun)**: ${sunSignData.name} ${sunSignData.isCusp ? '*(边界星座 Cusp)*' : ''}
-- **月亮 (Moon)**: ${ephs.moon.zN} (${ephs.moon.zE}) *(代表内在情绪、潜意识安全感)*
-- **上升 (Asc)**: ${asc}座 *(基于地理坐标结合地方恒星时精确推导)*
-
-- **[个人内行星]**
-- **水星 (Mercury)**: ${ephs.mercury.zN}${ephs.mercury.isR?' [⚠️ **℞ 逆行**]':''} *(思维、沟通与逻辑)*
-- **金星 (Venus)**: ${ephs.venus.zN}${ephs.venus.isR?' [⚠️ **℞ 逆行**]':''} *(爱情观、审美与价值取向)*
-- **火星 (Mars)**: ${ephs.mars.zN}${ephs.mars.isR?' [⚠️ **℞ 逆行**]':''} *(行动力与原始驱动力)*
-
-- **[社会外行星]**
-- **木星 (Jupiter)**: ${ephs.jupiter.zN}${ephs.jupiter.isR?' [⚠️ **℞ 逆行**]':''} *(扩张、幸运与机遇)*
-- **土星 (Saturn)**: ${ephs.saturn.zN}${ephs.saturn.isR?' [⚠️ **℞ 逆行**]':''} *(责任、压力与业力边界)*
+        const genderTerm = gen === '1' ? '乾造' : '坤造';
+        let mdText = `# 问天星算 · 专业命理排盘报告 (AI 专用)
 
 ---
-**【大模型占星解析系统指令】**：
-你是一位顶级的中西合璧命理大师。请综合以上数据进行深度解析：
-1. **优先处理预警**：若“岁运高危预警系统”有输出，必须置顶解析，并给出极其务实的避险建议。
-2. **深挖逆行**：若水、金、火、木、土星出现逆行，请重点解析其能量内敛或滞后的宿命感。
-3. **日月核心**：剖析外在性格(日)、内在灵魂(月)与生命动机(升)的联动张力。${sunSignData.isCusp ? `\n4. **边界星座**：由于太阳处于星座交界处(${sunSignData.cuspDetail})，请重点解析其双重性格特质。` : ''}
+### 📅 基础时空档案
+- **公历**: ${cSol.toYmd()} ${unk ? '（时辰不详）' : String(cSol.getHour()).padStart(2, '0')+':'+String(cSol.getMinute()).padStart(2, '0')}
+- **农历**: ${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()}
+- **地理**: ${prov} ${city} ${dist} (东经${lng.toFixed(2)}°, 北纬${lat.toFixed(2)}°)
+- **修正**: 真太阳时修正 **${off.total.toFixed(2)}** 分钟 (报告基于修正后时间)
+- **核心**: **${genderTerm}** / 生肖：${lunar.getYearShengXiao()} / 本命纳音：${lunar.getYearNaYin()}
 
-#### 生辰八字 (${unk?'六字' : '八字'})
+---
+### ☯️ 八字核心命理 (Structural Data)
+
 | 四柱 | 年柱 | 月柱 | 日柱 | 时柱 |
 | :--- | :--- | :--- | :--- | :--- |
-| **十神** | ${baZi.getYearShiShenGan()} | ${baZi.getMonthShiShenGan()} | 日主 | ${unk?'?':baZi.getTimeShiShenGan()} |
+| **十神** | ${baZi.getYearShiShenGan()} | ${baZi.getMonthShiShenGan()} | **日主** | ${unk?'?':baZi.getTimeShiShenGan()} |
 | **干支** | ${baZi.getYearGan()}${baZi.getYearZhi()} | ${baZi.getMonthGan()}${baZi.getMonthZhi()} | ${baZi.getDayGan()}${baZi.getDayZhi()} | ${unk?'??':baZi.getTimeGan()+baZi.getTimeZhi()} |
+| **藏干** | ${baZi.getYearHideGan().join('')} | ${baZi.getMonthHideGan().join('')} | ${baZi.getDayHideGan().join('')} | ${unk?'?':baZi.getTimeHideGan().join('')} |
 | **地势** | ${baZi.getYearShiShenZhi()[0]} | ${baZi.getMonthShiShenZhi()[0]} | ${baZi.getDayShiShenZhi()[0]} | ${unk?'?':baZi.getTimeShiShenZhi()[0]} |
 | **纳音** | ${lunar.getYearNaYin()} | ${lunar.getMonthNaYin()} | ${lunar.getDayNaYin()} | ${unk?'?':lunar.getTimeNaYin()} |
-| **藏干** | ${baZi.getYearHideGan().join('')} | ${baZi.getMonthHideGan().join('')} | ${baZi.getDayHideGan().join('')} | ${unk?'?':baZi.getTimeHideGan().join('')} |
 
-### 📊 命局五行与基础参数
-- **五行统计**：${wxStats}
-- **空亡**：日空[${dayKong}] | 年空[${yearKong}]
-- **三垣**：胎元[${taiYuan}] | 命宫[${mingGong}] | 身宫[${shenGong}]
+#### 📊 能量与神煞参数
+- **五行统计**: ${wxStats}
+- **主导格局**: **${mainGe}**
+- **日主能量**: ${energies}
+- **空亡分布**: 日空[${dayKong}] | 年空[${yearKong}]
+- **三垣参考**: 胎元[${taiYuan}] | 命宫[${mingGong}] | 身宫[${shenGong}]
+- **核心神煞**:
+  - 年柱: [${shensN.join(', ') || '无'}]
+  - 月柱: [${shensY.join(', ') || '无'}]
+  - 日柱: [${shensR.join(', ') || '无'}]
+  - 时柱: [${unk?'??' : shensS.join(', ') || '无'}]
 
-### 🌟 四柱神煞 (解盘关键取象)
-- **年柱** (${baZi.getYearGan()}${baZi.getYearZhi()}): [${shensN.join(', ') || '无'}]
-- **月柱** (${baZi.getMonthGan()}${baZi.getMonthZhi()}): [${shensY.join(', ') || '无'}]
-- **日柱** (${baZi.getDayGan()}${baZi.getDayZhi()}): [${shensR.join(', ') || '无'}]
-- **时柱** (${unk?'??' : baZi.getTimeGan()+baZi.getTimeZhi()}): [${shensS.join(', ') || '无'}]
+---
+### 💥 原局空间动态 (刑冲合害扫描)
+*(⚠️ AI 必须严格基于此地缘关系判定命局，切勿自行推演)*
+- **天干关系**: ${interactions.gan.length > 0 ? interactions.gan.join(' | ') : '无明显互动'}
+- **地支冲合**: 
+  - **六冲**: ${interactions.zhi.chong.length > 0 ? interactions.zhi.chong.join(', ') : '无'}
+  - **合局**: ${[...interactions.zhi.he, ...interactions.zhi.sanhe].join(', ') || '无'}
+  - **刑害**: ${[...interactions.zhi.xing, ...interactions.zhi.hai].join(', ') || '无'}
 
-### ⏳ 命运轨迹 (大运走势)
-**交运时间**: 出生后 ${yun.getStartYear()} 年 ${yun.getStartMonth()} 个月 ${yun.getStartDay()} 天交运 (公历 ${startSolar.toYmd()} 起运)
+---
+### ⏳ 此时此刻：流年运势定位
+*(⚠️ 请始终以此时间节点作为推测“近期运势”的唯一基准点)*
+- **当前时空**: ${nowTime.getFullYear()} ${currentYearGZ}年 (当前月份以节气切分为准)
+- **大运坐标**: 第 ${daYunIdx} 步大运 **[${currentDaYun}]** (虚岁：${age}岁)
+- **岁运警报**:
+${warnings.length > 0 ? `  - ${warnings.join('\n  - ')}` : '  - 暂无剧烈的天克地冲或伏吟警报，运势相对平稳。'}
+
+---
+### 🪐 天文占星配置 (Astro Coordinates)
+*(⚠️ 核心数据已由星历引擎计算，请信任落座，切勿二次推演)*
+
+- **核心落座**:
+  - **太阳 (Sun)**: ${sunSignData.name} ${sunSignData.isCusp ? '*(边界星座 Cusp: '+sunSignData.cuspDetail+')*' : ''}
+  - **月亮 (Moon)**: ${ephs.moon.zN} (${ephs.moon.zE})
+  - **上升 (Asc)**: ${asc}座
+- **行星状态**:
+  - 水星: ${ephs.mercury.zN}${ephs.mercury.isR?' [⚠️℞ 逆行]':''} | 金星: ${ephs.venus.zN}${ephs.venus.isR?' [⚠️℞ 逆行]':''} | 火星: ${ephs.mars.zN}${ephs.mars.isR?' [⚠️℞ 逆行]':''}
+  - 木星: ${ephs.jupiter.zN}${ephs.jupiter.isR?' [⚠️℞ 逆行]':''} | 土星: ${ephs.saturn.zN}${ephs.saturn.isR?' [⚠️℞ 逆行]':''}
+
+---
+### 📜 命运轨迹 (大运表)
 | 步数 | 虚岁 | 起运年份 | 大运干支 |
-| --- | --- | --- | --- |
-`;
-        
-        dayuns.slice(1, 9).forEach((dy, i) => {
-            mdText += `| ${i+1} | ${dy.getStartAge()}岁 | ${dy.getStartYear()} | ${dy.getGanZhi()} |\n`;
-        });
+| :--- | :--- | :--- | :--- |
+${dayuns.slice(1, 9).map((dy, i) => `| ${i+1} | ${dy.getStartAge()}岁 | ${dy.getStartYear()} | ${dy.getGanZhi()} |`).join('\n')}
 
-        mdText += `\n### 🌌 十二宫位分布\n`;
-        const pList = BRANCHES.map(b => `- **${b}宫**: ${palaceMap[b]}宫`).join(' | ');
-        mdText += pList + `\n\n---\n*报告由问天星算生成，${useSolar?'已应用真太阳时修正':'未应用修正'}*`;
+---
+### 🌌 十二宫位分布
+${BRANCHES.map(b => `**${b}宫**: ${palaceMap[b]}宫`).join(' | ')}
+
+---
+### 🤖 AI 解盘指令 (Final Prompt)
+**你现在是一位精通东方子平八字、传统紫微斗数及西方占星学的命理宗师。请基于上方结构化档案，为这位【${genderTerm}】进行一次深度全景解析：**
+
+1. **原局定格**：解析“${mainGe}”的成格质量。结合“日主能量”与“五行统计”判定身强身弱，明确喜用神与忌神。
+2. **时空动态**：结合“原局空间动态”中的刑冲合害，指出命局最脆弱或最有爆发力的点（如夫妻宫受冲、官星入库等）。
+3. **运势推演**：重点分析当前大运“${currentDaYun}”与当前流年“${currentYearGZ}”的互动。若存在“岁运警报”，请给出极其严肃的避险策略。
+4. **星命结合**：利用“天文占星配置”，结合日月升落座分析其性格底层代码，并解释行星逆行（如有）对个人成长的宿命感影响。
+5. **深度建议**：给出针对事业、财富、感情三个维度的务实建议。要求文风专业、洞察犀利，直击核心，拒绝空洞套话。
+
+---
+*报告由问天星算生成 | ${useSolar?'已应用真太阳时修正':'未应用修正'}*`;
 
         document.getElementById('mdOutput').value = mdText;
     } catch (e) { console.error(e); }

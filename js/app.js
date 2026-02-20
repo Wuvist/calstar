@@ -39,7 +39,7 @@ window.onload = function() {
             for (const [key, value] of params.entries()) {
                 if (['y','m','d','hh','mm'].includes(key)) hashData[key] = parseInt(value);
                 else if (key === 'gender') hashData[key] = value;
-                else if (key === 'unknown' || key === 'useSolar') hashData[key] = value === 'true';
+                else if (['unknown', 'useSolar', 'showBazi', 'showZiwei', 'showAstro'].includes(key)) hashData[key] = value === 'true';
                 else if (['province','city','district','cal','style','goal'].includes(key)) hashData[key] = decodeURIComponent(value);
             }
             if (Object.keys(hashData).length > 0) lastData = hashData;

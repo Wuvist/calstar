@@ -230,9 +230,10 @@ function updateDisplay() {
             palaceMap[BRANCHES[branchIdx]] = PALACES[i];
         }
 
-        const asc = unk ? "?" : getAscendant(cSol.getYear(), cSol.getMonth(), cSol.getDay(), cSol.getHour(), cSol.getMinute(), lng, lat);
-        const sunSignData = getExactSunSign(cSol);
-        const utcD = new Date(Date.UTC(cSol.getYear(), cSol.getMonth()-1, cSol.getDay(), cSol.getHour(), cSol.getMinute(), 0));
+        // --- 天文计算必须使用原始标准时间 (solar)，而非修正后的真太阳时 (cSol) ---
+        const asc = unk ? "?" : getAscendant(solar.getYear(), solar.getMonth(), solar.getDay(), solar.getHour(), solar.getMinute(), lng, lat);
+        const sunSignData = getExactSunSign(solar);
+        const utcD = new Date(Date.UTC(solar.getYear(), solar.getMonth()-1, solar.getDay(), solar.getHour(), solar.getMinute(), 0) - 8 * 3600000);
         const ephs = AstroEngine.getEphemeris(utcD);
 
         const nowTime = new Date();

@@ -12,13 +12,49 @@ function switchTab(tabId) {
     document.getElementById('tabBtn-' + tabId).classList.remove('border-transparent', 'text-gray-400');
 }
 
+let currentReportStyle = 'cure';
+let currentReportGoal = 'all';
+
+const STYLE_CONFIG = {
+    'cure': { name: '✨ 闺蜜', label: '性格标签', code: '能量代码', element: '五行属性' },
+    'pro': { name: '⚖️ 专业', label: '十神格局', code: '干支代码', element: '纳音属性' },
+    'sharp': { name: '🚀 犀利', label: '竞争权重', code: '底层逻辑', element: '生存资源' },
+    'mystic': { name: '🔮 灵性', label: '灵魂契约', code: '星命代码', element: '本源能量' }
+};
+
+const GOAL_CONFIG = {
+    'all': { name: '🌈 全面', focus: '全景解析性格肖像、情感模式、事业潜能及当下岁运。' },
+    'love': { name: '💑 情感', focus: '深度剖析情感观、正缘特征、婚恋契机及亲密关系中的潜意识课题。' },
+    'career': { name: '💰 事业', focus: '侧重于天赋才华、财富爆发点、职场竞争优势及商业决策建议。' },
+    'transit': { name: '📅 运势', focus: '锁定当前流年与大运的能量互动，给出近期（1-2年）的行动避坑指南与机遇预警。' }
+};
+
 window.onload = function() {
-    const lastData = JSON.parse(localStorage.getItem('bazi_last_input')) || {};
+    let lastData = JSON.parse(localStorage.getItem('bazi_last_input')) || {};
+    
+    if (window.location.hash) {
+        try {
+            const params = new URLSearchParams(window.location.hash.substring(1));
+            const hashData = {};
+            for (const [key, value] of params.entries()) {
+                if (['y','m','d','hh','mm'].includes(key)) hashData[key] = parseInt(value);
+                else if (key === 'gender') hashData[key] = value;
+                else if (key === 'unknown' || key === 'useSolar') hashData[key] = value === 'true';
+                else if (['province','city','district','cal','style','goal'].includes(key)) hashData[key] = decodeURIComponent(value);
+            }
+            if (Object.keys(hashData).length > 0) lastData = hashData;
+        } catch(e) { console.error("Hash parse error", e); }
+    }
+
     const now = new Date();
     const defY = lastData.y || now.getFullYear(), defM = lastData.m || (now.getMonth() + 1), defD = lastData.d || now.getDate();
     const defH = lastData.hh !== undefined ? lastData.hh : now.getHours(), defMin = lastData.mm !== undefined ? lastData.mm : now.getMinutes();
     const defGen = lastData.gender || "1", defUnk = lastData.unknown || false, defCal = lastData.cal || "solar";
     let defProv = lastData.province || "北京", defCity = lastData.city || "北京市", defDist = lastData.district || "全境", defUseSolar = lastData.useSolar || false;
+    
+    if (lastData.style) currentReportStyle = lastData.style;
+    if (lastData.goal) currentReportGoal = lastData.goal;
+
     if (!CITY_DATA[defProv]) {
         const norm = defProv.replace(/[市省]$/, "");
         if (CITY_DATA[norm]) defProv = norm;
@@ -84,26 +120,21 @@ window.onload = function() {
     unkCheck.checked = defUnk; solarCheck.checked = defUseSolar;
     document.getElementById('timeInputGroup').style.opacity = defUnk ? "0.3" : "1";
     document.querySelector(`input[name="gender"][value="${defGen}"]`).checked = true;
+    
+    setReportStyle(currentReportStyle);
+    setReportGoal(currentReportGoal);
+
     document.getElementById('btnCalculate').onclick = updateDisplay;
     updateDisplay();
 };
 
-let currentReportStyle = 'cure';
-let currentReportGoal = 'all';
-
-const STYLE_CONFIG = {
-    'cure': { name: '✨ 闺蜜', label: '性格标签', code: '能量代码', element: '五行属性' },
-    'pro': { name: '⚖️ 专业', label: '十神格局', code: '干支代码', element: '纳音属性' },
-    'sharp': { name: '🚀 犀利', label: '竞争权重', code: '底层逻辑', element: '生存资源' },
-    'mystic': { name: '🔮 灵性', label: '灵魂契约', code: '星命代码', element: '本源能量' }
-};
-
-const GOAL_CONFIG = {
-    'all': { name: '🌈 全面', focus: '全景解析性格肖像、情感模式、事业潜能及当下岁运。' },
-    'love': { name: '💑 情感', focus: '深度剖析情感观、正缘特征、婚恋契机及亲密关系中的潜意识课题。' },
-    'career': { name: '💰 事业', focus: '侧重于天赋才华、财富爆发点、职场竞争优势及商业决策建议。' },
-    'transit': { name: '📅 运势', focus: '锁定当前流年与大运的能量互动，给出近期（1-2年）的行动避坑指南与机遇预警。' }
-};
+function updateHash(data) {
+    const params = new URLSearchParams();
+    Object.keys(data).forEach(key => params.set(key, data[key]));
+    params.set('style', currentReportStyle);
+    params.set('goal', currentReportGoal);
+    window.history.replaceState(null, null, "#" + params.toString());
+}
 
 function setReportStyle(style) {
     currentReportStyle = style;
@@ -112,10 +143,12 @@ function setReportStyle(style) {
         btn.classList.add('border-yellow-100', 'text-gray-500');
     });
     const active = document.getElementById('style-' + style);
-    active.classList.add('active-style', 'border-yellow-300', 'text-yellow-900', 'bg-yellow-100');
-    active.classList.remove('border-yellow-100', 'text-gray-500');
+    if (active) {
+        active.classList.add('active-style', 'border-yellow-300', 'text-yellow-900', 'bg-yellow-100');
+        active.classList.remove('border-yellow-100', 'text-gray-500');
+    }
     updateHint();
-    updateDisplay();
+    if (document.getElementById('mdOutput')) updateDisplay();
 }
 
 function setReportGoal(goal) {
@@ -125,14 +158,17 @@ function setReportGoal(goal) {
         btn.classList.add('border-yellow-100', 'text-gray-500');
     });
     const active = document.getElementById('goal-' + goal);
-    active.classList.add('active-goal', 'border-yellow-300', 'text-yellow-900', 'bg-yellow-100');
-    active.classList.remove('border-yellow-100', 'text-gray-500');
+    if (active) {
+        active.classList.add('active-goal', 'border-yellow-300', 'text-yellow-900', 'bg-yellow-100');
+        active.classList.remove('border-yellow-100', 'text-gray-500');
+    }
     updateHint();
-    updateDisplay();
+    if (document.getElementById('mdOutput')) updateDisplay();
 }
 
 function updateHint() {
-    document.getElementById('styleHint').innerText = `💡 提示：当前风格：${STYLE_CONFIG[currentReportStyle].name} | 侧重：${GOAL_CONFIG[currentReportGoal].name}`;
+    const hintEl = document.getElementById('styleHint');
+    if (hintEl) hintEl.innerText = `💡 提示：当前风格：${STYLE_CONFIG[currentReportStyle].name} | 侧重：${GOAL_CONFIG[currentReportGoal].name}`;
 }
 
 function updateDisplay() {
@@ -142,7 +178,10 @@ function updateDisplay() {
         const type = document.querySelector('input[name="calType"]:checked').value;
         const gen = document.querySelector('input[name="gender"]:checked').value, unk = document.getElementById('timeUnknown').checked;
         const prov = document.getElementById('provinceSel').value, city = document.getElementById('citySel').value, dist = document.getElementById('distSel').value, useSolar = document.getElementById('useSolarTime').checked;
-        localStorage.setItem('bazi_last_input', JSON.stringify({ y, m, d, hh, mm, gender: gen, unknown: unk, province: prov, city, district: dist, useSolar, cal: type }));
+        
+        const inputData = { y, m, d, hh, mm, gender: gen, unknown: unk, province: prov, city, district: dist, useSolar, cal: type };
+        localStorage.setItem('bazi_last_input', JSON.stringify(inputData));
+        updateHash(inputData);
 
         let solar;
         if (type === 'solar') solar = Solar.fromYmdHms(y, m, d, hh, mm, 0);

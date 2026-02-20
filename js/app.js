@@ -176,8 +176,8 @@ window.onload = function () {
         shichenGrid.appendChild(btn);
     });
 
-    updateCityOptions(); updateDistOptions(); updateDayOptions();
     document.querySelector(`input[name="calType"][value="${defCal}"]`).checked = true;
+    updateCityOptions(); updateDistOptions(); updateDayOptions();
     unkCheck.checked = defUnk; solarCheck.checked = defUseSolar;
     showBaziCheck.checked = lastData.showBazi !== undefined ? lastData.showBazi : true;
     showZiweiCheck.checked = lastData.showZiwei !== undefined ? lastData.showZiwei : true;

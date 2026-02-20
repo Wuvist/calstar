@@ -249,6 +249,39 @@ function updateDisplay() {
         const energies = getDayMasterEnergy(baZi, unk);
         const warnings = checkTransitWarnings(baZi, currentYearGZ, currentDaYun);
 
+        // --- 紫微斗数计算 ---
+        let zwData = null;
+        if (!unk) {
+            zwData = calculateZiWei(
+                Math.abs(lunar.getMonth()), 
+                lunar.getDay(), 
+                BRANCHES.indexOf(baZi.getTimeZhi()), 
+                GANS.indexOf(baZi.getYearGan())
+            );
+        }
+
+        let zwMd = "";
+        if (zwData) {
+            const mgIdx = zwData.mingGongIdx;
+            zwMd = `
+---
+### 🌌 紫微斗数核心命盘 (十四主星精密排布)
+*(⚠️ 警告大模型：以下星曜落宫由历法级算法绝对确定。切勿自行计算星曜落宫，重点基于“三方四正”和“四化”进行性格与格局解析)*
+
+- **命理格局**: [${zwData.bureauName}] | 命宫在 [${BRANCHES[mgIdx]}] 
+- **灵魂四化**: ${zwData.siHua.join(' | ')} 
+
+- **🌟 核心三方四正 (人生主线与事业格局)**:
+  - **[本命宫] (${BRANCHES[mgIdx]})**: ${zwData.starsPos[mgIdx].join(', ') || '无主星'} *(系统提示：主星决定基础性格，请重点解析)*
+  - **[对宫-迁移宫] (${BRANCHES[(mgIdx + 6) % 12]})**: ${zwData.starsPos[(mgIdx + 6) % 12].join(', ') || '空宫'} *(注：空宫代表借对宫星曜或在外漂泊不定)*
+  - **[三合-财帛宫] (${BRANCHES[(mgIdx + 8) % 12]})**: ${zwData.starsPos[(mgIdx + 8) % 12].join(', ') || '空宫'}
+  - **[三合-官禄宫] (${BRANCHES[(mgIdx + 4) % 12]})**: ${zwData.starsPos[(mgIdx + 4) % 12].join(', ') || '空宫'}
+
+- **👥 十2地支全景**:
+  ${zwData.palaceNames.map((p, i) => `- **${BRANCHES[i]}宫 [${p}]**: ${zwData.starsPos[i].join(', ') || '空宫'}`).join('\n  ')}
+`;
+        }
+
         if (!unk) {
             let st = cSol.getHour() % 2 === 0 ? cSol.getHour() - 1 : cSol.getHour(); if (st === -1) st = 23;
             document.getElementById('shichenInfo').innerHTML = `时辰:${String(st).padStart(2, '0')}:00~${String((st+2)%24).padStart(2, '0')}:00 | 修正:${off.total.toFixed(1)}分`;
@@ -262,7 +295,34 @@ function updateDisplay() {
             const cell = document.getElementById(`pos-${index}`);
             const isT = !unk && baZi.getTimeZhi() === branch, isY = baZi.getYearZhi() === branch;
             const pName = palaceMap[branch];
-            cell.innerHTML = `<div class="flex justify-between items-start"><span class="text-base font-bold ${getWuXingClass(branch)}">${branch}</span><div class="flex flex-col items-end">${isT?'<span class="bg-red-700 text-white text-[7px] px-0.5 rounded">时</span>':''}${isY?'<span class="bg-yellow-700 text-white text-[7px] px-0.5 rounded">年</span>':''}</div></div><div class="text-[9px] md:text-[10px] text-yellow-900 text-right mt-auto">${pName}</div>`;
+            
+            let zwContent = '';
+            if (zwData) {
+                const zwPalace = zwData.palaceNames[index];
+                const zwStars = zwData.starsPos[index];
+                const starHtml = zwStars.map(s => {
+                    const isHua = s.includes('[');
+                    return `<span class="${isHua ? 'text-red-600 font-bold' : 'text-yellow-800'}">${s}</span>`;
+                }).join('<span class="text-gray-300 mx-0.5">,</span>');
+                zwContent = `
+                    <div class="mt-1 flex flex-col border-t border-yellow-100 pt-1">
+                        <span class="text-[10px] font-bold text-blue-800">${zwPalace}</span>
+                        <div class="text-[9px] leading-tight flex flex-wrap items-center">${starHtml || '<span class="text-gray-300">空宫</span>'}</div>
+                    </div>
+                `;
+            }
+
+            cell.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <span class="text-base font-bold ${getWuXingClass(branch)}">${branch}</span>
+                    <div class="flex flex-col items-end">
+                        ${isT?'<span class="bg-red-700 text-white text-[7px] px-0.5 rounded">时</span>':''}
+                        ${isY?'<span class="bg-yellow-700 text-white text-[7px] px-0.5 rounded">年</span>':''}
+                    </div>
+                </div>
+                ${zwContent}
+                <div class="text-[9px] md:text-[10px] text-yellow-900 text-right mt-auto opacity-30">${pName}</div>
+            `;
             cell.style.backgroundColor = isT ? "rgba(254, 243, 199, 0.8)" : "";
             if (pName === '命宫') cell.classList.add('ring-1', 'ring-red-300');
             else cell.classList.remove('ring-1', 'ring-red-300');
@@ -280,7 +340,7 @@ function updateDisplay() {
 - **农历**: ${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()}
 - **修正**: 真太阳修正 ${off.total.toFixed(2)}m (已应用)
 - **核心**: **${genderTerm}** / ${lunar.getYearShengXiao()} / ${lunar.getYearNaYin()} / 上升${asc}座
-
+${zwMd}
 ---
 ### ☯️ 命局骨架 (Structural Data)
 
@@ -311,6 +371,11 @@ function updateDisplay() {
     currentReportStyle === 'sharp' ? '深谙人性与社会法则、言辞犀利的商业教练' :
     '追求万物共振与灵魂本源的灵性导师'
 }。请基于上方档案，针对【${gc.name}】进行深度全景解析。**
+
+**【大模型紫微解盘系统指令】**：
+你是一位深通紫微斗数与现代心理学的玄学宗师。请综合档案中精确算出的“三方四正”和十四主星分布进行断局：
+1. **死磕化忌星**：找到 \`[忌]\` 所在的宫位，用极具心理疗愈感和宿命感的语言，一针见血地指出命主此生潜意识中最放不下、最容易受挫的领域，并给出破局之道。
+2. **看命宫三方四正**：结合命、财、官、迁的星曜组合，判断其格局是适合安稳守成（如机月同梁），还是适合折腾创业（如杀破狼）。
 
 **【分析指令】**：
 1. **核心诉求**：${gc.focus}

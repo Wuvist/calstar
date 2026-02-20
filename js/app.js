@@ -124,10 +124,10 @@ window.onload = function() {
         }
     }
 
-    document.querySelectorAll('input[name="calType"]').forEach(r => r.onchange = () => { updateDayOptions(); updateDisplay(); });
-    yearSel.onchange = () => { updateDayOptions(); updateDisplay(); };
-    monthSel.onchange = () => { updateDayOptions(); updateDisplay(); };
-    daySel.onchange = updateDisplay; hourSel.onchange = updateDisplay; minSel.onchange = updateDisplay;
+    document.querySelectorAll('input[name="calType"]').forEach(r => r.onchange = () => { updateDayOptions(); });
+    yearSel.onchange = () => { updateDayOptions(); };
+    monthSel.onchange = () => { updateDayOptions(); };
+    daySel.onchange = null; hourSel.onchange = null; minSel.onchange = null;
     provSel.onchange = () => { updateCityOptions(); updateDisplay(); }; citySel.onchange = () => { updateDistOptions(); updateDisplay(); }; distSel.onchange = updateDisplay;
     solarCheck.onchange = updateDisplay;
     unkCheck.onchange = () => { document.getElementById('timeInputGroup').style.opacity = unkCheck.checked ? "0.3" : "1"; updateDisplay(); };

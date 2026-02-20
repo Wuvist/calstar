@@ -106,11 +106,34 @@
 
             <div id="tab-report" class="tab-content md:flex w-full md:w-80 flex-col shrink-0 border-l-0 md:border-l border-yellow-200 md:pl-4 h-full overflow-hidden">
                 <div class="flex justify-between items-center mb-1 shrink-0">
-                    <label class="text-[10px] font-bold text-yellow-900">Markdown 报告</label>
-                    <button onclick="copyMd()" id="copyBtn" class="bg-yellow-100 text-yellow-900 px-2 py-0.5 rounded text-[10px]">复制报告</button>
+                    <label class="text-[10px] font-bold text-yellow-900">Markdown 报告配置</label>
+                    <button onclick="copyMd()" id="copyBtn" class="bg-yellow-900 text-white px-2 py-0.5 rounded text-[10px] hover:bg-yellow-800 transition">复制报告</button>
                 </div>
+                
+                <!-- 第一组：风格选择 -->
+                <div class="mb-1.5">
+                    <p class="text-[8px] text-gray-400 mb-1 uppercase tracking-wider">设定解盘风格</p>
+                    <div class="flex flex-wrap gap-1">
+                        <button onclick="setReportStyle('cure')" id="style-cure" class="style-btn active-style text-[9px] px-1.5 py-0.5 rounded border border-yellow-300 bg-yellow-100 text-yellow-900">✨ 闺蜜</button>
+                        <button onclick="setReportStyle('pro')" id="style-pro" class="style-btn text-[9px] px-1.5 py-0.5 rounded border border-yellow-100 text-gray-500">⚖️ 专业</button>
+                        <button onclick="setReportStyle('sharp')" id="style-sharp" class="style-btn text-[9px] px-1.5 py-0.5 rounded border border-yellow-100 text-gray-500">🚀 犀利</button>
+                        <button onclick="setReportStyle('mystic')" id="style-mystic" class="style-btn text-[9px] px-1.5 py-0.5 rounded border border-yellow-100 text-gray-500">🔮 灵性</button>
+                    </div>
+                </div>
+
+                <!-- 第二组：需求选择 -->
+                <div class="mb-2">
+                    <p class="text-[8px] text-gray-400 mb-1 uppercase tracking-wider">设定分析侧重</p>
+                    <div class="flex flex-wrap gap-1">
+                        <button onclick="setReportGoal('all')" id="goal-all" class="goal-btn active-goal text-[9px] px-1.5 py-0.5 rounded border border-yellow-300 bg-yellow-100 text-yellow-900">🌈 全面</button>
+                        <button onclick="setReportGoal('love')" id="goal-love" class="goal-btn text-[9px] px-1.5 py-0.5 rounded border border-yellow-100 text-gray-500">💑 情感</button>
+                        <button onclick="setReportGoal('career')" id="goal-career" class="goal-btn text-[9px] px-1.5 py-0.5 rounded border border-yellow-100 text-gray-500">💰 事业</button>
+                        <button onclick="setReportGoal('transit')" id="goal-transit" class="goal-btn text-[9px] px-1.5 py-0.5 rounded border border-yellow-100 text-gray-500">📅 运势</button>
+                    </div>
+                </div>
+
                 <div class="bg-yellow-50 border-l-2 border-yellow-400 p-1.5 mb-2 shrink-0">
-                    <p class="text-[9px] text-yellow-800 leading-tight">💡 提示：点击“复制报告”后，直接粘贴发送给 AI (如 Claude, GPT-4, Gemini) 即可开始深度解盘。</p>
+                    <p class="text-[9px] text-yellow-800 leading-tight" id="styleHint">💡 提示：当前风格：✨ 闺蜜 | 侧重：🌈 全面</p>
                 </div>
                 <textarea id="mdOutput" readonly class="flex-grow bg-white bg-opacity-50 border border-yellow-200 rounded p-2 text-[10px] font-mono focus:outline-none resize-none leading-relaxed overflow-y-auto w-full mb-1"></textarea>
             </div>

@@ -88,6 +88,53 @@ window.onload = function() {
     updateDisplay();
 };
 
+let currentReportStyle = 'cure';
+let currentReportGoal = 'all';
+
+const STYLE_CONFIG = {
+    'cure': { name: '✨ 闺蜜', label: '性格标签', code: '能量代码', element: '五行属性' },
+    'pro': { name: '⚖️ 专业', label: '十神格局', code: '干支代码', element: '纳音属性' },
+    'sharp': { name: '🚀 犀利', label: '竞争权重', code: '底层逻辑', element: '生存资源' },
+    'mystic': { name: '🔮 灵性', label: '灵魂契约', code: '星命代码', element: '本源能量' }
+};
+
+const GOAL_CONFIG = {
+    'all': { name: '🌈 全面', focus: '全景解析性格肖像、情感模式、事业潜能及当下岁运。' },
+    'love': { name: '💑 情感', focus: '深度剖析情感观、正缘特征、婚恋契机及亲密关系中的潜意识课题。' },
+    'career': { name: '💰 事业', focus: '侧重于天赋才华、财富爆发点、职场竞争优势及商业决策建议。' },
+    'transit': { name: '📅 运势', focus: '锁定当前流年与大运的能量互动，给出近期（1-2年）的行动避坑指南与机遇预警。' }
+};
+
+function setReportStyle(style) {
+    currentReportStyle = style;
+    document.querySelectorAll('.style-btn').forEach(btn => {
+        btn.classList.remove('active-style', 'border-yellow-300', 'text-yellow-900', 'bg-yellow-100');
+        btn.classList.add('border-yellow-100', 'text-gray-500');
+    });
+    const active = document.getElementById('style-' + style);
+    active.classList.add('active-style', 'border-yellow-300', 'text-yellow-900', 'bg-yellow-100');
+    active.classList.remove('border-yellow-100', 'text-gray-500');
+    updateHint();
+    updateDisplay();
+}
+
+function setReportGoal(goal) {
+    currentReportGoal = goal;
+    document.querySelectorAll('.goal-btn').forEach(btn => {
+        btn.classList.remove('active-goal', 'border-yellow-300', 'text-yellow-900', 'bg-yellow-100');
+        btn.classList.add('border-yellow-100', 'text-gray-500');
+    });
+    const active = document.getElementById('goal-' + goal);
+    active.classList.add('active-goal', 'border-yellow-300', 'text-yellow-900', 'bg-yellow-100');
+    active.classList.remove('border-yellow-100', 'text-gray-500');
+    updateHint();
+    updateDisplay();
+}
+
+function updateHint() {
+    document.getElementById('styleHint').innerText = `💡 提示：当前风格：${STYLE_CONFIG[currentReportStyle].name} | 侧重：${GOAL_CONFIG[currentReportGoal].name}`;
+}
+
 function updateDisplay() {
     try {
         const y = parseInt(document.getElementById('inputYear').value), m = parseInt(document.getElementById('inputMonth').value), d = parseInt(document.getElementById('inputDay').value);
@@ -101,7 +148,7 @@ function updateDisplay() {
         if (type === 'solar') solar = Solar.fromYmdHms(y, m, d, hh, mm, 0);
         else { const lunar = Lunar.fromYmd(y, Math.abs(m), d); if (m < 0) lunar.setLeap(true); solar = lunar.getSolar(); solar = Solar.fromYmdHms(solar.getYear(), solar.getMonth(), solar.getDay(), hh, mm, 0); }
 
-        let coords = [116.4, 39.9]; // Default Beijing
+        let coords = [116.4, 39.9]; 
         if (CITY_DATA[prov] && CITY_DATA[prov][2][city]) {
             coords = CITY_DATA[prov][2][city];
             if (dist !== "全境" && coords[2] && coords[2][dist]) coords = coords[2][dist];
@@ -143,19 +190,17 @@ function updateDisplay() {
         const utcD = new Date(Date.UTC(cSol.getYear(), cSol.getMonth()-1, cSol.getDay(), cSol.getHour(), cSol.getMinute(), 0));
         const ephs = AstroEngine.getEphemeris(utcD);
 
-        // --- 进阶命理参数计算 ---
         const nowTime = new Date();
         const currentLunar = Lunar.fromDate(nowTime);
-        const currentYearGZ = currentLunar.getYearInGanZhi(); // e.g. "丙午"
+        const currentYearGZ = currentLunar.getYearInGanZhi(); 
         
-        // 查找当前大运
         let currentDaYun = "无";
         let daYunIdx = 0;
-        const age = currentLunar.getYear() - lunar.getYear(); // 虚岁粗算
+        const age = currentLunar.getYear() - lunar.getYear(); 
         for (let i = 0; i < dayuns.length; i++) {
             if (age >= dayuns[i].getStartAge() && age < dayuns[i].getEndAge()) {
                 currentDaYun = dayuns[i].getGanZhi();
-                daYunIdx = i + 1; // 步数
+                daYunIdx = i + 1;
                 break;
             }
         }
@@ -185,90 +230,63 @@ function updateDisplay() {
         });
 
         const genderTerm = gen === '1' ? '乾造' : '坤造';
-        let mdText = `# 问天星算 · 专业命理排盘报告 (AI 专用)
+        const sc = STYLE_CONFIG[currentReportStyle];
+        const gc = GOAL_CONFIG[currentReportGoal];
+
+        let mdText = `# 问天星算 · 命理档案 (${sc.name}风格 | ${gc.name}侧重)
 
 ---
-### 📅 基础时空档案
-- **公历**: ${cSol.toYmd()} ${unk ? '（时辰不详）' : String(cSol.getHour()).padStart(2, '0')+':'+String(cSol.getMinute()).padStart(2, '0')}
+### 📅 基础档案
+- **时间**: ${cSol.toYmd()} ${unk ? '（不详）' : String(cSol.getHour()).padStart(2, '0')+':'+String(cSol.getMinute()).padStart(2, '0')}
 - **农历**: ${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()}
-- **地理**: ${prov} ${city} ${dist} (东经${lng.toFixed(2)}°, 北纬${lat.toFixed(2)}°)
-- **修正**: 真太阳时修正 **${off.total.toFixed(2)}** 分钟 (报告基于修正后时间)
-- **核心**: **${genderTerm}** / 生肖：${lunar.getYearShengXiao()} / 本命纳音：${lunar.getYearNaYin()}
+- **修正**: 真太阳修正 ${off.total.toFixed(2)}m (已应用)
+- **核心**: **${genderTerm}** / ${lunar.getYearShengXiao()} / ${lunar.getYearNaYin()} / 上升${asc}座
 
 ---
-### ☯️ 八字核心命理 (Structural Data)
+### ☯️ 命局骨架 (Structural Data)
 
 | 四柱 | 年柱 | 月柱 | 日柱 | 时柱 |
 | :--- | :--- | :--- | :--- | :--- |
-| **十神** | ${baZi.getYearShiShenGan()} | ${baZi.getMonthShiShenGan()} | **日主** | ${unk?'?':baZi.getTimeShiShenGan()} |
-| **干支** | ${baZi.getYearGan()}${baZi.getYearZhi()} | ${baZi.getMonthGan()}${baZi.getMonthZhi()} | ${baZi.getDayGan()}${baZi.getDayZhi()} | ${unk?'??':baZi.getTimeGan()+baZi.getTimeZhi()} |
-| **藏干** | ${baZi.getYearHideGan().join('')} | ${baZi.getMonthHideGan().join('')} | ${baZi.getDayHideGan().join('')} | ${unk?'?':baZi.getTimeHideGan().join('')} |
-| **地势** | ${baZi.getYearShiShenZhi()[0]} | ${baZi.getMonthShiShenZhi()[0]} | ${baZi.getDayShiShenZhi()[0]} | ${unk?'?':baZi.getTimeShiShenZhi()[0]} |
-| **纳音** | ${lunar.getYearNaYin()} | ${lunar.getMonthNaYin()} | ${lunar.getDayNaYin()} | ${unk?'?':lunar.getTimeNaYin()} |
+| **${sc.label}** | ${baZi.getYearShiShenGan()} | ${baZi.getMonthShiShenGan()} | **命主** | ${unk?'?':baZi.getTimeShiShenGan()} |
+| **${sc.code}** | ${baZi.getYearGan()}${baZi.getYearZhi()} | ${baZi.getMonthGan()}${baZi.getMonthZhi()} | ${baZi.getDayGan()}${baZi.getDayZhi()} | ${unk?'??':baZi.getTimeGan()+baZi.getTimeZhi()} |
+| **${sc.element}** | ${lunar.getYearNaYin()} | ${lunar.getMonthNaYin()} | ${lunar.getDayNaYin()} | ${unk?'?':lunar.getTimeNaYin()} |
 
-#### 📊 能量与神煞参数
+#### 📊 能量参数
 - **五行统计**: ${wxStats}
 - **主导格局**: **${mainGe}**
-- **日主能量**: ${energies}
-- **空亡分布**: 日空[${dayKong}] | 年空[${yearKong}]
-- **三垣参考**: 胎元[${taiYuan}] | 命宫[${mingGong}] | 身宫[${shenGong}]
-- **核心神煞**:
-  - 年柱: [${shensN.join(', ') || '无'}]
-  - 月柱: [${shensY.join(', ') || '无'}]
-  - 日柱: [${shensR.join(', ') || '无'}]
-  - 时柱: [${unk?'??' : shensS.join(', ') || '无'}]
+- **当前坐标**: ${nowTime.getFullYear()} ${currentYearGZ}年 | 大运 [${currentDaYun}] | 虚岁 ${age}
+- **空间作用**: ${[...interactions.gan, ...interactions.zhi.chong, ...interactions.zhi.he, ...interactions.zhi.xing, ...interactions.zhi.hai].join(' | ') || '无明显作用'}
 
 ---
-### 💥 原局空间动态 (刑冲合害扫描)
-*(⚠️ AI 必须严格基于此地缘关系判定命局，切勿自行推演)*
-- **天干关系**: ${interactions.gan.length > 0 ? interactions.gan.join(' | ') : '无明显互动'}
-- **地支冲合**: 
-  - **六冲**: ${interactions.zhi.chong.length > 0 ? interactions.zhi.chong.join(', ') : '无'}
-  - **合局**: ${[...interactions.zhi.he, ...interactions.zhi.sanhe].join(', ') || '无'}
-  - **刑害**: ${[...interactions.zhi.xing, ...interactions.zhi.hai].join(', ') || '无'}
-
----
-### ⏳ 此时此刻：流年运势定位
-*(⚠️ 请始终以此时间节点作为推测“近期运势”的唯一基准点)*
-- **当前时空**: ${nowTime.getFullYear()} ${currentYearGZ}年 (当前月份以节气切分为准)
-- **大运坐标**: 第 ${daYunIdx} 步大运 **[${currentDaYun}]** (虚岁：${age}岁)
-- **岁运警报**:
-${warnings.length > 0 ? `  - ${warnings.join('\n  - ')}` : '  - 暂无剧烈的天克地冲或伏吟警报，运势相对平稳。'}
-
----
-### 🪐 天文占星配置 (Astro Coordinates)
-*(⚠️ 核心数据已由星历引擎计算，请信任落座，切勿二次推演)*
-
-- **核心落座**:
-  - **太阳 (Sun)**: ${sunSignData.name} ${sunSignData.isCusp ? '*(边界星座 Cusp: '+sunSignData.cuspDetail+')*' : ''}
-  - **月亮 (Moon)**: ${ephs.moon.zN} (${ephs.moon.zE})
-  - **上升 (Asc)**: ${asc}座
-- **行星状态**:
-  - 水星: ${ephs.mercury.zN}${ephs.mercury.isR?' [⚠️℞ 逆行]':''} | 金星: ${ephs.venus.zN}${ephs.venus.isR?' [⚠️℞ 逆行]':''} | 火星: ${ephs.mars.zN}${ephs.mars.isR?' [⚠️℞ 逆行]':''}
-  - 木星: ${ephs.jupiter.zN}${ephs.jupiter.isR?' [⚠️℞ 逆行]':''} | 土星: ${ephs.saturn.zN}${ephs.saturn.isR?' [⚠️℞ 逆行]':''}
-
----
-### 📜 命运轨迹 (大运表)
-| 步数 | 虚岁 | 起运年份 | 大运干支 |
-| :--- | :--- | :--- | :--- |
-${dayuns.slice(1, 9).map((dy, i) => `| ${i+1} | ${dy.getStartAge()}岁 | ${dy.getStartYear()} | ${dy.getGanZhi()} |`).join('\n')}
-
----
-### 🌌 十二宫位分布
-${BRANCHES.map(b => `**${b}宫**: ${palaceMap[b]}宫`).join(' | ')}
+### 🪐 天文星象 (Planet Data)
+- **日月核心**: 太阳 ${sunSignData.name} | 月亮 ${ephs.moon.zN} | 上升 ${asc}座
+- **星体状态**: 
+  - 水星: ${ephs.mercury.zN}${ephs.mercury.isR?' [℞]':''} | 金星: ${ephs.venus.zN}${ephs.venus.isR?' [℞]':''} | 火星: ${ephs.mars.zN}${ephs.mars.isR?' [℞]':''}
+  - 木星: ${ephs.jupiter.zN}${ephs.jupiter.isR?' [℞]':''} | 土星: ${ephs.saturn.zN}${ephs.saturn.isR?' [℞]':''}
 
 ---
 ### 🤖 AI 解盘指令 (Final Prompt)
-**你现在是一位精通东方子平八字、传统紫微斗数及西方占星学的命理宗师。请基于上方结构化档案，为这位【${genderTerm}】进行一次深度全景解析：**
+**你现在是一位${
+    currentReportStyle === 'cure' ? '温柔且洞察力极强的占星命理博主' :
+    currentReportStyle === 'pro' ? '精通子平八字与占星学的命理宗师' :
+    currentReportStyle === 'sharp' ? '深谙人性与社会法则、言辞犀利的商业教练' :
+    '追求万物共振与灵魂本源的灵性导师'
+}。请基于上方档案，针对【${gc.name}】进行深度全景解析。**
 
-1. **原局定格**：解析“${mainGe}”的成格质量。结合“日主能量”与“五行统计”判定身强身弱，明确喜用神与忌神。
-2. **时空动态**：结合“原局空间动态”中的刑冲合害，指出命局最脆弱或最有爆发力的点（如夫妻宫受冲、官星入库等）。
-3. **运势推演**：重点分析当前大运“${currentDaYun}”与当前流年“${currentYearGZ}”的互动。若存在“岁运警报”，请给出极其严肃的避险策略。
-4. **星命结合**：利用“天文占星配置”，结合日月升落座分析其性格底层代码，并解释行星逆行（如有）对个人成长的宿命感影响。
-5. **深度建议**：给出针对事业、财富、感情三个维度的务实建议。要求文风专业、洞察犀利，直击核心，拒绝空洞套话。
+**【分析指令】**：
+1. **核心诉求**：${gc.focus}
+2. **逻辑穿透**：请结合主导格局“${mainGe}”、日主能量“${energies}”以及日月升落座进行深度穿透分析。
+3. **避坑指南**：若存在岁运警报（${warnings.length > 0 ? warnings.join(',') : '无'}）或行星逆行，给出极其务实的行动建议。
+**【文风要求】**：
+- ${
+    currentReportStyle === 'cure' ? '语气亲切、感性且富有治愈感，像闺蜜聊天一样娓娓道来。' :
+    currentReportStyle === 'pro' ? '严谨、学术、专业，保留对传统术语（十神、神煞、格局）的精准解释。' :
+    currentReportStyle === 'sharp' ? '直接、高效、理性，直击利害关系，多给出行动建议，拒绝套话。' :
+    '空灵、深邃、富有哲理，侧重于灵魂进化、潜意识图景与能量平衡。'
+}
 
 ---
-*报告由问天星算生成 | ${useSolar?'已应用真太阳时修正':'未应用修正'}*`;
+*报告由问天星算生成 | 已应用真太阳时修正*`;
 
         document.getElementById('mdOutput').value = mdText;
     } catch (e) { console.error(e); }
@@ -280,5 +298,5 @@ function copyMd() {
     area.select();
     document.execCommand('copy');
     btn.innerText = '已复制';
-    setTimeout(() => { btn.innerText = '复制'; }, 1500);
+    setTimeout(() => { btn.innerText = '复制报告词'; }, 1500);
 }

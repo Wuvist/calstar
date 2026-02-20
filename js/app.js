@@ -428,6 +428,36 @@ function updateDisplay(isFinal = false) {
         const energies = getDayMasterEnergy(baZi, unk);
         const warnings = checkTransitWarnings(baZi, currentYearGZ, currentDaYun);
 
+        // --- 核心新增：流年全息太岁扫描 ---
+        const baziBranches = [baZi.getYearZhi(), baZi.getMonthZhi(), baZi.getDayZhi(), unk ? null : baZi.getTimeZhi()];
+        const taiSuiRes = scanTaiSui(baziBranches, nowTime.getFullYear());
+        let taiSuiMd = `
+---
+### 🔔 【流年太岁高危雷达 (立足当前时空)】
+*(⚠️ 系统时间定位：当前推演基准年为 ${taiSuiRes.targetYear} 年，当值太岁星君为【${taiSuiRes.tsBranch}】。太岁为一岁之主，威不可犯！)*
+
+**🚨 命主本年度全息太岁侦测结果**:
+`;
+        if (!taiSuiRes.hasConflict) {
+            taiSuiMd += "- **四柱全息扫描**: 原局四柱与本年太岁相安无事，流年平稳，万事顺遂。\n";
+        } else {
+            taiSuiRes.results.forEach((r, i) => {
+                if (r.relations.length > 0) {
+                    const isHighRisk = i === 2; // 日柱为高危
+                    const riskPrefix = isHighRisk ? " 💥💥💥" : "";
+                    const riskWarning = isHighRisk ? " (⚠️ 极度高危：日支动荡即自身根基与夫妻宫受损！)" : "";
+                    taiSuiMd += `- **[${r.pillar}]** (${r.branch}): 触犯 **[${r.relations.join('/')}]**${riskPrefix}${riskWarning}\n`;
+                } else {
+                    taiSuiMd += `- **[${r.pillar}]** (${r.branch}): 平安无事\n`;
+                }
+            });
+        }
+        taiSuiMd += `
+---
+**【大模型化太岁与心理干预系统指令】**:
+当命主存在“犯太岁”情况时，请结合具体柱位含义（如年支受冲主长辈健康、日支受冲主自身变动与感情破裂）给出针对性建议。**尤其是当日支触犯“冲太岁”时，严禁使用客套话，必须以极致严肃的口吻警告其避免重大投资与决策，保持低调与退守。**
+`;
+
         // --- 向导第二步：简约预览文本更新 ---
         const reviewText = document.getElementById('reviewText');
         if (reviewText) {
@@ -580,6 +610,7 @@ function updateDisplay(isFinal = false) {
 - **修正**: 真太阳修正 ${off.total.toFixed(2)}m (已应用)
 - **核心**: **${genderTerm}** / ${displayLunar.getYearShengXiao()} / ${displayLunar.getYearNaYin()} ${showAstro ? '/ 上升' + asc + '座' : ''}
 ${edgeCaseMd}
+${taiSuiMd}
 ${(showZiwei && zwMd) ? zwMd : ''}
 ${showBazi ? `
 ---

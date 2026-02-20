@@ -50,6 +50,65 @@ function renderPillar(title, gan, zhi, hide, ssGan, ssZhi, nayin, isDM = false) 
         </div>`;
 }
 
+// --- 流年全息太岁 (Tai Sui Radar) 扫描系统 ---
+
+/**
+ * 扫描命局地支与流年太岁的互动关系
+ * @param {Array} baziBranches 命局地支数组 [年, 月, 日, 时]
+ * @param {number} targetYear 目标年份
+ * @returns {Object} 扫描结果
+ */
+function scanTaiSui(baziBranches, targetYear = new Date().getFullYear()) {
+    // 1. 确定流年太岁地支 (以该年立春后的农历年支为准)
+    const tsBranch = Lunar.fromDate(new Date(targetYear, 5, 1)).getYearZhi(); 
+    
+    // 2. 犯太岁关系矩阵 (Key: 命局支, Value: 与太岁互动的关系名)
+    // 这里采用反向查表法：判定“当太岁为 X 时，哪些地支会触发关系”
+    const getRelations = (b, ts) => {
+        const rels = [];
+        if (b === ts) rels.push("值太岁");
+        
+        // 冲 (六冲)
+        const idxB = BRANCHES.indexOf(b);
+        const idxTS = BRANCHES.indexOf(ts);
+        if ((idxB + 6) % 12 === idxTS) rels.push("冲太岁");
+
+        // 害 (六害)
+        const haiMap = { '子': '未', '未': '子', '丑': '午', '午': '丑', '寅': '巳', '巳': '寅', '卯': '辰', '辰': '卯', '申': '亥', '亥': '申', '酉': '戌', '戌': '酉' };
+        if (haiMap[b] === ts) rels.push("害太岁");
+
+        // 破 (相破)
+        const poMap = { '子': '酉', '酉': '子', '卯': '午', '午': '卯', '辰': '丑', '丑': '辰', '戌': '未', '未': '戌', '寅': '亥', '亥': '寅', '巳': '申', '申': '巳' };
+        if (poMap[b] === ts) rels.push("破太岁");
+
+        // 刑 (相刑)
+        // 自刑
+        if (b === ts && ['辰', '午', '酉', '亥'].includes(b)) rels.push("自刑");
+        // 子卯刑
+        if ((b === '子' && ts === '卯') || (b === '卯' && ts === '子')) rels.push("刑太岁(无礼)");
+        // 寅巳申刑
+        if (['寅', '巳', '申'].includes(b) && ['寅', '巳', '申'].includes(ts) && b !== ts) rels.push("刑太岁(无恩)");
+        // 丑戌未刑
+        if (['丑', '戌', '未'].includes(b) && ['丑', '戌', '未'].includes(ts) && b !== ts) rels.push("刑太岁(恃势)");
+
+        return rels;
+    };
+
+    const pillarNames = ["年柱/生肖宫", "月柱/事业宫", "日柱/夫妻宫", "时柱/投资宫"];
+    const scanResults = baziBranches.map((b, i) => ({
+        pillar: pillarNames[i],
+        branch: b,
+        relations: getRelations(b, tsBranch)
+    }));
+
+    return {
+        targetYear,
+        tsBranch,
+        results: scanResults,
+        hasConflict: scanResults.some(r => r.relations.length > 0)
+    };
+}
+
 // --- 高阶命理算法 (新增) ---
 
 // 1. 原局拓扑引擎：刑冲合害侦测

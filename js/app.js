@@ -65,6 +65,7 @@ window.onload = function() {
     const yearSel = document.getElementById('inputYear'), monthSel = document.getElementById('inputMonth'), daySel = document.getElementById('inputDay');
     const hourSel = document.getElementById('inputHour'), minSel = document.getElementById('inputMin');
     const unkCheck = document.getElementById('timeUnknown'), provSel = document.getElementById('provinceSel'), citySel = document.getElementById('citySel'), distSel = document.getElementById('distSel'), solarCheck = document.getElementById('useSolarTime');
+    const showBaziCheck = document.getElementById('showBazi'), showZiweiCheck = document.getElementById('showZiwei'), showAstroCheck = document.getElementById('showAstro');
 
     for(let i=1900; i<=2100; i++) yearSel.add(new Option(i + '年', i, i===defY, i===defY));
     for(let i=0; i<24; i++) hourSel.add(new Option(String(i).padStart(2, '0') + '时', i, i===defH, i===defH));
@@ -106,6 +107,7 @@ window.onload = function() {
     provSel.onchange = () => { updateCityOptions(); updateDisplay(); }; citySel.onchange = () => { updateDistOptions(); updateDisplay(); }; distSel.onchange = updateDisplay;
     solarCheck.onchange = updateDisplay;
     unkCheck.onchange = () => { document.getElementById('timeInputGroup').style.opacity = unkCheck.checked ? "0.3" : "1"; updateDisplay(); };
+    showBaziCheck.onchange = updateDisplay; showZiweiCheck.onchange = updateDisplay; showAstroCheck.onchange = updateDisplay;
 
     const shichenGrid = document.getElementById('shichenGrid');
     BRANCHES.forEach((b, i) => {
@@ -118,6 +120,9 @@ window.onload = function() {
     updateCityOptions(); updateDistOptions(); updateDayOptions(); 
     document.querySelector(`input[name="calType"][value="${defCal}"]`).checked = true;
     unkCheck.checked = defUnk; solarCheck.checked = defUseSolar;
+    showBaziCheck.checked = lastData.showBazi !== undefined ? lastData.showBazi : true;
+    showZiweiCheck.checked = lastData.showZiwei !== undefined ? lastData.showZiwei : true;
+    showAstroCheck.checked = lastData.showAstro !== undefined ? lastData.showAstro : true;
     document.getElementById('timeInputGroup').style.opacity = defUnk ? "0.3" : "1";
     document.querySelector(`input[name="gender"][value="${defGen}"]`).checked = true;
     
@@ -178,8 +183,9 @@ function updateDisplay() {
         const type = document.querySelector('input[name="calType"]:checked').value;
         const gen = document.querySelector('input[name="gender"]:checked').value, unk = document.getElementById('timeUnknown').checked;
         const prov = document.getElementById('provinceSel').value, city = document.getElementById('citySel').value, dist = document.getElementById('distSel').value, useSolar = document.getElementById('useSolarTime').checked;
+        const showBazi = document.getElementById('showBazi').checked, showZiwei = document.getElementById('showZiwei').checked, showAstro = document.getElementById('showAstro').checked;
         
-        const inputData = { y, m, d, hh, mm, gender: gen, unknown: unk, province: prov, city, district: dist, useSolar, cal: type };
+        const inputData = { y, m, d, hh, mm, gender: gen, unknown: unk, province: prov, city, district: dist, useSolar, cal: type, showBazi, showZiwei, showAstro };
         localStorage.setItem('bazi_last_input', JSON.stringify(inputData));
         updateHash(inputData);
 
@@ -251,7 +257,7 @@ function updateDisplay() {
 
         // --- 紫微斗数计算 ---
         let zwData = null;
-        if (!unk) {
+        if (showZiwei && !unk) {
             zwData = calculateZiWei(
                 Math.abs(lunar.getMonth()), 
                 lunar.getDay(), 
@@ -288,8 +294,16 @@ function updateDisplay() {
             document.querySelectorAll('.sc-btn').forEach(btn => btn.innerText.startsWith(baZi.getTimeZhi()) ? btn.classList.add('bg-yellow-700', 'text-white') : btn.classList.remove('bg-yellow-700', 'text-white'));
         } else { document.getElementById('shichenInfo').innerText = "出生时辰不详"; }
 
-        document.getElementById('basicInfo').innerHTML = `<div class="text-[12px] md:text-[13px] font-bold">${cSol.toYmd()} ${unk ? '' : String(cSol.getHour()).padStart(2, '0')+':'+String(cSol.getMinute()).padStart(2, '0')}</div><div class="text-[10px] md:text-[11px] text-yellow-900">${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()} ${unk ? '' : '('+baZi.getTimeZhi()+'时)'}</div><div class="flex flex-wrap justify-center gap-x-1 text-[8px] md:text-[9px] mt-0.5 opacity-80"><span>${lunar.getYearShengXiao()}</span><span class="cursor-help" data-tip="太阳星座：代表一个人的基本性格。${sunSignData.isCusp ? '\\n⚠️' + sunSignData.cuspDetail : ''}">${sunSignData.name}${sunSignData.isCusp ? '*' : ''}</span><span class="text-red-800 font-bold cursor-help" data-tip="上升星座：代表给人的第一印象。">(${asc}座)</span></div>`;
-        document.getElementById('baziDisplay').innerHTML = `${renderPillar('年', baZi.getYearGan(), baZi.getYearZhi(), baZi.getYearHideGan().join(''), baZi.getYearShiShenGan(), baZi.getYearShiShenZhi()[0], lunar.getYearNaYin())}${renderPillar('月', baZi.getMonthGan(), baZi.getMonthZhi(), baZi.getMonthHideGan().join(''), baZi.getMonthShiShenGan(), baZi.getMonthShiShenZhi()[0], lunar.getMonthNaYin())}${renderPillar('日', baZi.getDayGan(), baZi.getDayZhi(), baZi.getDayHideGan().join(''), '日主', baZi.getDayShiShenZhi()[0], lunar.getDayNaYin(), true)}${unk ? '<div class="flex flex-col items-center opacity-20"><span class="text-[9px] text-yellow-800">时</span><span class="text-xl font-bold text-gray-300">?</span></div>' : renderPillar('时', baZi.getTimeGan(), baZi.getTimeZhi(), baZi.getTimeHideGan().join(''), baZi.getTimeShiShenGan(), baZi.getTimeShiShenZhi()[0], lunar.getTimeNaYin())}`;
+        const astroInfo = showAstro ? `<span class="cursor-help" data-tip="太阳星座：代表一个人的基本性格。${sunSignData.isCusp ? '\\n⚠️' + sunSignData.cuspDetail : ''}">${sunSignData.name}${sunSignData.isCusp ? '*' : ''}</span><span class="text-red-800 font-bold cursor-help" data-tip="上升星座：代表给人的第一印象。">(${asc}座)</span>` : '';
+        document.getElementById('basicInfo').innerHTML = `<div class="text-[12px] md:text-[13px] font-bold">${cSol.toYmd()} ${unk ? '' : String(cSol.getHour()).padStart(2, '0')+':'+String(cSol.getMinute()).padStart(2, '0')}</div><div class="text-[10px] md:text-[11px] text-yellow-900">${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()} ${unk ? '' : '('+baZi.getTimeZhi()+'时)'}</div><div class="flex flex-wrap justify-center gap-x-1 text-[8px] md:text-[9px] mt-0.5 opacity-80"><span>${lunar.getYearShengXiao()}</span>${astroInfo}</div>`;
+        
+        const baziEl = document.getElementById('baziDisplay');
+        if (showBazi) {
+            baziEl.style.display = 'flex';
+            baziEl.innerHTML = `${renderPillar('年', baZi.getYearGan(), baZi.getYearZhi(), baZi.getYearHideGan().join(''), baZi.getYearShiShenGan(), baZi.getYearShiShenZhi()[0], lunar.getYearNaYin())}${renderPillar('月', baZi.getMonthGan(), baZi.getMonthZhi(), baZi.getMonthHideGan().join(''), baZi.getMonthShiShenGan(), baZi.getMonthShiShenZhi()[0], lunar.getMonthNaYin())}${renderPillar('日', baZi.getDayGan(), baZi.getDayZhi(), baZi.getDayHideGan().join(''), '日主', baZi.getDayShiShenZhi()[0], lunar.getDayNaYin(), true)}${unk ? '<div class="flex flex-col items-center opacity-20"><span class="text-[9px] text-yellow-800">时</span><span class="text-xl font-bold text-gray-300">?</span></div>' : renderPillar('时', baZi.getTimeGan(), baZi.getTimeZhi(), baZi.getTimeHideGan().join(''), baZi.getTimeShiShenGan(), baZi.getTimeShiShenZhi()[0], lunar.getTimeNaYin())}`;
+        } else {
+            baziEl.style.display = 'none';
+        }
 
         BRANCHES.forEach((branch, index) => {
             const cell = document.getElementById(`pos-${index}`);
@@ -297,7 +311,7 @@ function updateDisplay() {
             const pName = palaceMap[branch];
             
             let zwContent = '';
-            if (zwData) {
+            if (showZiwei && zwData) {
                 const zwPalace = zwData.palaceNames[index];
                 const zwStars = zwData.starsPos[index];
                 const starHtml = zwStars.map(s => {
@@ -312,12 +326,14 @@ function updateDisplay() {
                 `;
             }
 
+            const branchInfo = showBazi ? `<span class="text-base font-bold ${getWuXingClass(branch)}">${branch}</span>` : `<span class="text-[10px] text-gray-400">${branch}</span>`;
+
             cell.innerHTML = `
                 <div class="flex justify-between items-start">
-                    <span class="text-base font-bold ${getWuXingClass(branch)}">${branch}</span>
+                    ${branchInfo}
                     <div class="flex flex-col items-end">
-                        ${isT?'<span class="bg-red-700 text-white text-[7px] px-0.5 rounded">时</span>':''}
-                        ${isY?'<span class="bg-yellow-700 text-white text-[7px] px-0.5 rounded">年</span>':''}
+                        ${(showBazi && isT)?'<span class="bg-red-700 text-white text-[7px] px-0.5 rounded">时</span>':''}
+                        ${(showBazi && isY)?'<span class="bg-yellow-700 text-white text-[7px] px-0.5 rounded">年</span>':''}
                     </div>
                 </div>
                 ${zwContent}
@@ -339,8 +355,9 @@ function updateDisplay() {
 - **时间**: ${cSol.toYmd()} ${unk ? '（不详）' : String(cSol.getHour()).padStart(2, '0')+':'+String(cSol.getMinute()).padStart(2, '0')}
 - **农历**: ${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()}
 - **修正**: 真太阳修正 ${off.total.toFixed(2)}m (已应用)
-- **核心**: **${genderTerm}** / ${lunar.getYearShengXiao()} / ${lunar.getYearNaYin()} / 上升${asc}座
-${zwMd}
+- **核心**: **${genderTerm}** / ${lunar.getYearShengXiao()} / ${lunar.getYearNaYin()} ${showAstro ? '/ 上升'+asc+'座' : ''}
+${(showZiwei && zwMd) ? zwMd : ''}
+${showBazi ? `
 ---
 ### ☯️ 命局骨架 (Structural Data)
 
@@ -355,38 +372,43 @@ ${zwMd}
 - **主导格局**: **${mainGe}**
 - **当前坐标**: ${nowTime.getFullYear()} ${currentYearGZ}年 | 大运 [${currentDaYun}] | 虚岁 ${age}
 - **空间作用**: ${[...interactions.gan, ...interactions.zhi.chong, ...interactions.zhi.he, ...interactions.zhi.xing, ...interactions.zhi.hai].join(' | ') || '无明显作用'}
-
+` : ''}
+${showAstro ? `
 ---
 ### 🪐 天文星象 (Planet Data)
 - **日月核心**: 太阳 ${sunSignData.name} | 月亮 ${ephs.moon.zN} | 上升 ${asc}座
 - **星体状态**: 
   - 水星: ${ephs.mercury.zN}${ephs.mercury.isR?' [℞]':''} | 金星: ${ephs.venus.zN}${ephs.venus.isR?' [℞]':''} | 火星: ${ephs.mars.zN}${ephs.mars.isR?' [℞]':''}
   - 木星: ${ephs.jupiter.zN}${ephs.jupiter.isR?' [℞]':''} | 土星: ${ephs.saturn.zN}${ephs.saturn.isR?' [℞]':''}
-
+` : ''}
 ---
-### 🤖 AI 解盘指令 (Final Prompt)
-**你现在是一位${
-    currentReportStyle === 'cure' ? '温柔且洞察力极强的占星命理博主' :
-    currentReportStyle === 'pro' ? '精通子平八字与占星学的命理宗师' :
-    currentReportStyle === 'sharp' ? '深谙人性与社会法则、言辞犀利的商业教练' :
+### 🤖 AI 综合解盘指令 (Unified Prompt)
+
+**【专家设定】**
+你是一位${
+    currentReportStyle === 'cure' ? '温柔且洞察力极强的“心灵占星师”' :
+    currentReportStyle === 'pro' ? '精通传统命理（'+[showBazi?'子平八字':null,showZiwei?'紫微斗数':null,showAstro?'西洋占星':null].filter(x=>x).join('、')+'）的玄学宗师' :
+    currentReportStyle === 'sharp' ? '深谙人性与社会法则、言辞犀利的“商业教练”' :
     '追求万物共振与灵魂本源的灵性导师'
-}。请基于上方档案，针对【${gc.name}】进行深度全景解析。**
+}。请基于上方${(showBazi||showZiwei||showAstro)?'['+[showBazi?'八字':null,showZiwei?'紫微':null,showAstro?'占星':null].filter(x=>x).join('、')+']':''}综合档案，针对命主【${gc.name}】的需求进行深度穿透。
 
-**【大模型紫微解盘系统指令】**：
-你是一位深通紫微斗数与现代心理学的玄学宗师。请综合档案中精确算出的“三方四正”和十四主星分布进行断局：
-1. **死磕化忌星**：找到 \`[忌]\` 所在的宫位，用极具心理疗愈感和宿命感的语言，一针见血地指出命主此生潜意识中最放不下、最容易受挫的领域，并给出破局之道。
-2. **看命宫三方四正**：结合命、财、官、迁的星曜组合，判断其格局是适合安稳守成（如机月同梁），还是适合折腾创业（如杀破狼）。
+**【解盘逻辑集 (必须严格执行)】**
+${(() => {
+    const rules = [];
+    rules.push(`**核心诉求定位**：${gc.focus}`);
+    if (showZiwei) rules.push(`**紫微死磕化忌**：重点定位 \`[忌]\` 星所在宫位，指出命主潜意识中最易受挫、最放不下的“宿命课题”，并给出具体破局建议。`);
+    if (showBazi) rules.push(`**八字格局穿透**：结合主导格局“${mainGe}”与日主能量“${energies}”，分析命主性格底色是适合“守成安稳”还是“折腾创业”。`);
+    if (showAstro) rules.push(`**星象性格整合**：利用太阳/上升/月亮的相位逻辑，结合东方命理，平衡“宿命论”与“性格决定论”。`);
+    rules.push(`**避坑指南**：${(showBazi && warnings.length > 0) ? '针对岁运警报（'+warnings.join(',')+'）' : '结合星象状态'}，给出极其务实、不带套话的近期行动建议。`);
+    return rules.map((r, i) => (i + 1) + ". " + r).join("\n");
+})()}
 
-**【分析指令】**：
-1. **核心诉求**：${gc.focus}
-2. **逻辑穿透**：请结合主导格局“${mainGe}”、日主能量“${energies}”以及日月升落座进行深度穿透分析。
-3. **避坑指南**：若存在岁运警报（${warnings.length > 0 ? warnings.join(',') : '无'}）或行星逆行，给出极其务实的行动建议。
-**【文风要求】**：
+**【文风要求】**
 - ${
-    currentReportStyle === 'cure' ? '语气亲切、感性且富有治愈感，像闺蜜聊天一样娓娓道来。' :
-    currentReportStyle === 'pro' ? '严谨、学术、专业，保留对传统术语（十神、神煞、格局）的精准解释。' :
-    currentReportStyle === 'sharp' ? '直接、高效、理性，直击利害关系，多给出行动建议，拒绝套话。' :
-    '空灵、深邃、富有哲理，侧重于灵魂进化、潜意识图景与能量平衡。'
+    currentReportStyle === 'cure' ? '语气亲切、感性且富有治愈感，像闺蜜聊天一样娓娓道来，多用鼓励性话语。' :
+    currentReportStyle === 'pro' ? '严谨、学术、专业，保留对核心术语的精准引用，给出逻辑缜密的推导过程。' :
+    currentReportStyle === 'sharp' ? '直接、高效、理性，直击命门，不谈虚词，多给具体策略建议。' :
+    '空灵、深邃、富有哲理，侧重于灵魂进化、潜意识图景与能量场平衡。'
 }
 
 ---

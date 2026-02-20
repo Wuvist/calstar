@@ -30,6 +30,14 @@
             class="flex flex-col flex-grow items-center justify-center -mt-10 md:-mt-20 transition-all duration-500 w-full max-w-2xl mx-auto">
             <section
                 class="w-full bg-white bg-opacity-80 md:bg-opacity-50 p-3 md:p-6 rounded-lg md:rounded shadow-lg md:shadow-sm border border-yellow-200 mb-1 shrink-0 text-yellow-900">
+                <!-- 步骤 1 简阅状态 (在第 2 步时显示) -->
+                <div id="step1Review" class="hidden py-2 px-1 flex justify-between items-center border-b border-yellow-100 mb-2">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] text-gray-500 uppercase tracking-wider mb-0.5">① 已选生辰</span>
+                        <div id="reviewText" class="text-sm md:text-base font-bold text-yellow-900 flex items-center gap-2"></div>
+                    </div>
+                    <button id="btnEditStep1" class="text-[10px] text-blue-700 font-bold border border-blue-200 px-2 py-0.5 rounded hover:bg-blue-50 transition">修改</button>
+                </div>
                 <!-- 步骤 1：日期、时间与性别 -->
                 <div id="step1Container" class="grid grid-cols-1 md:grid-cols-3 gap-2 items-end">
                     <div class="col-span-1 md:col-span-1">
@@ -129,10 +137,8 @@
                         </div>
 
                         <div class="flex w-full md:w-48 space-x-2 md:mt-0 mt-2 shrink-0">
-                            <button id="btnPrevStep"
-                                class="w-1/3 md:w-16 bg-gray-100 text-gray-600 font-bold py-2 rounded text-sm md:text-base border border-gray-300 hover:bg-gray-200 transition">返回</button>
                             <button id="btnCalculate"
-                                class="flex-grow bg-yellow-900 text-white font-bold py-2 rounded text-sm md:text-base border-2 border-yellow-900 hover:bg-yellow-800 hover:border-yellow-800 shadow-md transition transform active:scale-95">⚔️
+                                class="flex-grow bg-yellow-900 text-white font-bold py-2 rounded text-sm md:text-base border-2 border-yellow-900 hover:bg-yellow-800 hover:border-yellow-800 shadow-md transition transform active:scale-95">✨
                                 立即排盘</button>
                         </div>
                     </div>

@@ -194,12 +194,15 @@ window.onload = function () {
     const step1Container = document.getElementById('step1Container');
     const step2Container = document.getElementById('step2Container');
     const btnNextStep = document.getElementById('btnNextStep');
-    const btnPrevStep = document.getElementById('btnPrevStep');
     const btnCalculate = document.getElementById('btnCalculate');
     const wizardContainer = document.getElementById('wizardContainer');
     const resultContainer = document.getElementById('resultContainer');
     const btnModifyInfo = document.getElementById('btnModifyInfo');
     const mainHeader = document.getElementById('mainHeader');
+    const step1Review = document.getElementById('step1Review');
+    const reviewText = document.getElementById('reviewText');
+    const btnEditStep1 = document.getElementById('btnEditStep1');
+    const ziHourPanel = document.getElementById('ziHourPanel');
 
     // 视图切换函数
     function showStep1() {
@@ -208,7 +211,10 @@ window.onload = function () {
         step1Container.classList.remove('hidden');
         step2Container.classList.add('hidden');
         btnNextStep.classList.remove('hidden');
-
+        step1Review.classList.add('hidden');
+        shichenGrid.classList.remove('hidden');
+        // ziHourPanel visibility is handled by logic elsewhere, but we ensure it can be shown
+        
         // 恢复居中样式
         wizardContainer.classList.add('justify-center', 'items-center', 'h-full', '-mt-10', 'md:-mt-20');
         mainHeader.classList.remove('hidden');
@@ -217,9 +223,15 @@ window.onload = function () {
     function showStep2() {
         wizardContainer.classList.remove('hidden', 'opacity-0');
         resultContainer.classList.add('hidden', 'opacity-0');
-        step1Container.classList.remove('hidden');
+        step1Container.classList.add('hidden');
         step2Container.classList.remove('hidden');
         btnNextStep.classList.add('hidden');
+        step1Review.classList.remove('hidden');
+        shichenGrid.classList.add('hidden');
+        ziHourPanel.classList.add('hidden');
+
+        // 更新简约预览文本
+        updateDisplay(false);
 
         // 可选：进入第二步时稍微上移，保留空间
         wizardContainer.classList.remove('justify-center', '-mt-10', 'md:-mt-20');
@@ -252,7 +264,7 @@ window.onload = function () {
         updateDisplay(false); // 更新第二步需要的星历等数据，但不出结果
     };
 
-    btnPrevStep.onclick = () => {
+    btnEditStep1.onclick = () => {
         showStep1();
     };
 
@@ -410,6 +422,28 @@ function updateDisplay(isFinal = false) {
         const interactions = calculateInteractions(baZi, unk);
         const energies = getDayMasterEnergy(baZi, unk);
         const warnings = checkTransitWarnings(baZi, currentYearGZ, currentDaYun);
+
+        // --- 向导第二步：简约预览文本更新 ---
+        const step1Container = document.getElementById('step1Container');
+        const resultContainer = document.getElementById('resultContainer');
+        const reviewText = document.getElementById('reviewText');
+        if (step1Container && step1Container.classList.contains('hidden') && resultContainer && resultContainer.classList.contains('hidden')) {
+            const cal = document.querySelector('input[name="calType"]:checked').value === 'solar' ? '公历' : '农历';
+            const gender = document.querySelector('input[name="gender"]:checked').value === '1' ? '男' : '女';
+            const timeStr = unk ? '时辰不详' : `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+            const lunarStr = `农历${displayLunar.getMonthInChinese()}月${displayLunar.getDayInChinese()} · 属${displayLunar.getYearShengXiao()}`;
+            reviewText.innerHTML = `
+                <div class="flex flex-col md:flex-row md:items-center md:gap-3">
+                    <span class="text-sm md:text-base">${cSol.toYmd()} (${lunarStr})</span>
+                    <div class="flex items-center gap-2 text-xs md:text-sm text-yellow-800 opacity-80">
+                        <span>${timeStr}</span>
+                        <span class="opacity-40">|</span>
+                        <span>${gender}</span>
+                        ${(!unk && useSolar) ? `<span class="opacity-40">|</span><span class="text-[10px] bg-red-50 px-1 rounded border border-red-100">${off.total > 0 ? '+' : ''}${off.total.toFixed(1)}m</span>` : ''}
+                    </div>
+                </div>
+            `;
+        }
 
         // --- 紫微斗数计算 ---
         let zwData = null;

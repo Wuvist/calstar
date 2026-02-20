@@ -126,7 +126,12 @@ window.onload = function () {
         } else {
             const months = LunarYear.fromYear(y).getMonths();
             monthSel.options.length = 0;
-            months.forEach(m => monthSel.add(new Option(m.isLeap() ? "闰" + LUNAR_MONTHS[m.getMonth() - 1] : LUNAR_MONTHS[m.getMonth() - 1], String(m.getMonth() * (m.isLeap() ? -1 : 1)))));
+            months.forEach(m => {
+                const mIdx = Math.abs(m.getMonth());
+                const mName = (m.isLeap() ? "闰" : "") + LUNAR_MONTHS[mIdx - 1];
+                const mVal = m.getMonth() * (m.isLeap() ? -1 : 1);
+                monthSel.add(new Option(mName, String(mVal)));
+            });
 
             if (prevM && Array.from(monthSel.options).some(o => o.value === prevM)) monthSel.value = prevM;
             else if (String(defM) && Array.from(monthSel.options).some(o => o.value === String(defM))) monthSel.value = String(defM);
@@ -428,10 +433,15 @@ function updateDisplay(isFinal = false) {
         const resultContainer = document.getElementById('resultContainer');
         const reviewText = document.getElementById('reviewText');
         if (step1Container && step1Container.classList.contains('hidden') && resultContainer && resultContainer.classList.contains('hidden')) {
-            const cal = document.querySelector('input[name="calType"]:checked').value === 'solar' ? '公历' : '农历';
+            const calType = document.querySelector('input[name="calType"]:checked').value;
+            const cal = calType === 'solar' ? '公历' : '农历';
             const gender = document.querySelector('input[name="gender"]:checked').value === '1' ? '男' : '女';
             const timeStr = unk ? '时辰不详' : `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
-            const lunarStr = `农历${displayLunar.getMonthInChinese()}月${displayLunar.getDayInChinese()} · 属${displayLunar.getYearShengXiao()}`;
+            
+            // 农历显示处理：如果是农历输入，显示农历月日；如果是公历输入，显示转换后的农历
+            const lunarMonthName = (displayLunar.isLeap() ? "闰" : "") + LUNAR_MONTHS[Math.abs(displayLunar.getMonth()) - 1];
+            const lunarStr = `${lunarMonthName}${displayLunar.getDayInChinese()} · 属${displayLunar.getYearShengXiao()}`;
+            
             reviewText.innerHTML = `
                 <div class="flex flex-col md:flex-row md:items-center md:gap-3">
                     <span class="text-sm md:text-base">${cSol.toYmd()} (${lunarStr})</span>

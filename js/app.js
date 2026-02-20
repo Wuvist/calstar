@@ -429,18 +429,14 @@ function updateDisplay(isFinal = false) {
         const warnings = checkTransitWarnings(baZi, currentYearGZ, currentDaYun);
 
         // --- 向导第二步：简约预览文本更新 ---
-        const step1Container = document.getElementById('step1Container');
-        const resultContainer = document.getElementById('resultContainer');
         const reviewText = document.getElementById('reviewText');
-        if (step1Container && step1Container.classList.contains('hidden') && resultContainer && resultContainer.classList.contains('hidden')) {
+        if (reviewText) {
             const calType = document.querySelector('input[name="calType"]:checked').value;
-            const cal = calType === 'solar' ? '公历' : '农历';
             const gender = document.querySelector('input[name="gender"]:checked').value === '1' ? '男' : '女';
             const timeStr = unk ? '时辰不详' : `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
             
-            // 农历显示处理：如果是农历输入，显示农历月日；如果是公历输入，显示转换后的农历
-            const lunarMonthName = (displayLunar.isLeap() ? "闰" : "") + LUNAR_MONTHS[Math.abs(displayLunar.getMonth()) - 1];
-            const lunarStr = `${lunarMonthName}${displayLunar.getDayInChinese()} · 属${displayLunar.getYearShengXiao()}`;
+            // 农历显示处理
+            const lunarStr = `${displayLunar.getMonthInChinese()}月${displayLunar.getDayInChinese()} · 属${displayLunar.getYearShengXiao()}`;
             
             reviewText.innerHTML = `
                 <div class="flex flex-col md:flex-row md:items-center md:gap-3">

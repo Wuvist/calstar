@@ -143,13 +143,35 @@ function updateDisplay() {
         const utcD = new Date(Date.UTC(cSol.getYear(), cSol.getMonth()-1, cSol.getDay(), cSol.getHour(), cSol.getMinute(), 0));
         const ephs = AstroEngine.getEphemeris(utcD);
 
+        // --- 进阶命理参数计算 ---
+        const nowTime = new Date();
+        const currentLunar = Lunar.fromDate(nowTime);
+        const currentYearGZ = currentLunar.getYearInGanZhi(); // e.g. "丙午"
+        
+        // 查找当前大运
+        let currentDaYun = "无";
+        let daYunIdx = 0;
+        const age = currentLunar.getYear() - lunar.getYear(); // 虚岁粗算
+        for (let i = 0; i < dayuns.length; i++) {
+            if (age >= dayuns[i].getStartAge() && age < dayuns[i].getEndAge()) {
+                currentDaYun = dayuns[i].getGanZhi();
+                daYunIdx = i + 1; // 步数
+                break;
+            }
+        }
+        
+        const mainGe = baZi.getMonthShiShenZhi()[0] + "格";
+        const interactions = calculateInteractions(baZi, unk);
+        const energies = getDayMasterEnergy(baZi, unk);
+        const warnings = checkTransitWarnings(baZi, currentYearGZ, currentDaYun);
+
         if (!unk) {
             let st = cSol.getHour() % 2 === 0 ? cSol.getHour() - 1 : cSol.getHour(); if (st === -1) st = 23;
             document.getElementById('shichenInfo').innerHTML = `时辰:${String(st).padStart(2, '0')}:00~${String((st+2)%24).padStart(2, '0')}:00 | 修正:${off.total.toFixed(1)}分`;
             document.querySelectorAll('.sc-btn').forEach(btn => btn.innerText.startsWith(baZi.getTimeZhi()) ? btn.classList.add('bg-yellow-700', 'text-white') : btn.classList.remove('bg-yellow-700', 'text-white'));
         } else { document.getElementById('shichenInfo').innerText = "出生时辰不详"; }
 
-        document.getElementById('basicInfo').innerHTML = `<div class="text-[12px] md:text-[13px] font-bold">${cSol.toYmd()} ${unk ? '' : String(cSol.getHour()).padStart(2, '0')+':'+String(cSol.getMinute()).padStart(2, '0')}</div><div class="text-[10px] md:text-[11px] text-yellow-900">${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()} ${unk ? '' : '('+baZi.getTimeZhi()+'时)'}</div><div class="flex flex-wrap justify-center gap-x-1 text-[8px] md:text-[9px] mt-0.5 opacity-80"><span>${lunar.getYearShengXiao()}</span><span class="cursor-help" data-tip="太阳星座：代表一个人的基本性格。${sunSignData.isCusp ? '\n⚠️' + sunSignData.cuspDetail : ''}">${sunSignData.name}${sunSignData.isCusp ? '*' : ''}</span><span class="text-red-800 font-bold cursor-help" data-tip="上升星座：代表给人的第一印象。">(${asc}座)</span></div>`;
+        document.getElementById('basicInfo').innerHTML = `<div class="text-[12px] md:text-[13px] font-bold">${cSol.toYmd()} ${unk ? '' : String(cSol.getHour()).padStart(2, '0')+':'+String(cSol.getMinute()).padStart(2, '0')}</div><div class="text-[10px] md:text-[11px] text-yellow-900">${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()} ${unk ? '' : '('+baZi.getTimeZhi()+'时)'}</div><div class="flex flex-wrap justify-center gap-x-1 text-[8px] md:text-[9px] mt-0.5 opacity-80"><span>${lunar.getYearShengXiao()}</span><span class="cursor-help" data-tip="太阳星座：代表一个人的基本性格。${sunSignData.isCusp ? '\\n⚠️' + sunSignData.cuspDetail : ''}">${sunSignData.name}${sunSignData.isCusp ? '*' : ''}</span><span class="text-red-800 font-bold cursor-help" data-tip="上升星座：代表给人的第一印象。">(${asc}座)</span></div>`;
         document.getElementById('baziDisplay').innerHTML = `${renderPillar('年', baZi.getYearGan(), baZi.getYearZhi(), baZi.getYearHideGan().join(''), baZi.getYearShiShenGan(), baZi.getYearShiShenZhi()[0], lunar.getYearNaYin())}${renderPillar('月', baZi.getMonthGan(), baZi.getMonthZhi(), baZi.getMonthHideGan().join(''), baZi.getMonthShiShenGan(), baZi.getMonthShiShenZhi()[0], lunar.getMonthNaYin())}${renderPillar('日', baZi.getDayGan(), baZi.getDayZhi(), baZi.getDayHideGan().join(''), '日主', baZi.getDayShiShenZhi()[0], lunar.getDayNaYin(), true)}${unk ? '<div class="flex flex-col items-center opacity-20"><span class="text-[9px] text-yellow-800">时</span><span class="text-xl font-bold text-gray-300">?</span></div>' : renderPillar('时', baZi.getTimeGan(), baZi.getTimeZhi(), baZi.getTimeHideGan().join(''), baZi.getTimeShiShenGan(), baZi.getTimeShiShenZhi()[0], lunar.getTimeNaYin())}`;
 
         BRANCHES.forEach((branch, index) => {
@@ -171,6 +193,25 @@ function updateDisplay() {
 - **真太阳时修正**: ${off.total.toFixed(2)} 分钟
 - **性别**: ${gen==='1'?'男':'女'} / **生肖**: ${lunar.getYearShengXiao()} (${lunar.getYearNaYin()})
 
+### ☯️ 命局高阶内核 (原局骨架与动能)
+- **核心主格局**: **[${mainGe}]** *(系统判定：请以此格局为主线，突出命主在动荡中建功立业的特质、事业野心与性格棱角)*
+- **日主能量气数 (十二长生)**:
+  - ${energies}
+
+### ⚡ 原局空间引力 (刑冲合害深度扫描)
+*(⚠️ 警告 AI：以下为程序绝对确定的原局内部作用，决定了命主一生的动荡与羁绊，大模型切勿自行推测空间关系，严格据此解析)*
+- **天干互动**: ${interactions.gan.length > 0 ? interactions.gan.join(' | ') : '无明显五合四冲'}
+- **地支互动**: 
+  - 💥 **相冲**: ${interactions.zhi.chong.length > 0 ? interactions.zhi.chong.join(', ') : '无'}
+  - 🤝 **合局**: ${[...interactions.zhi.he, ...interactions.zhi.sanhe].join(', ') || '无'}
+  - ⚠️ **相刑/害**: ${[...interactions.zhi.xing, ...interactions.zhi.hai].join(', ') || '无'}
+
+### ⏳ 此时此刻：流年运势精确定位 (立足当前时间)
+*(⚠️ 无论上下文如何，请始终以以下时空节点作为推测“近期运势”的唯一标准基准点)*
+- **当前年份**: ${nowTime.getFullYear()} ${currentYearGZ}年
+- **当前行运**: 第 ${daYunIdx} 步大运 **[${currentDaYun}]** 
+${warnings.length > 0 ? `- **⚠️ 岁运高危预警系统**:\n  - ${warnings.join('\n  - ')}` : '- **岁运状态**: 平稳 (无伏吟/反吟剧烈冲克)'}
+
 ### 🪐 占星本命星盘配置 (高精度天文数学推演)
 *(⚠️ 核心天文数据已由本地程序计算完毕，大模型请绝对信任此落座数据，切勿自行推演计算)*
 
@@ -191,8 +232,9 @@ function updateDisplay() {
 ---
 **【大模型占星解析系统指令】**：
 你是一位顶级的中西合璧命理大师。请综合以上数据进行深度解析：
-1. **深挖逆行**：若水、金、火、木、土星出现逆行，请重点解析其能量内敛或滞后的宿命感。
-2. **日月核心**：剖析外在性格(日)、内在灵魂(月)与生命动机(升)的联动张力。${sunSignData.isCusp ? '\n3. **边界星座**：由于太阳处于星座交界处(' + sunSignData.cuspDetail + ')，请重点解析其双重性格特质。' : ''}
+1. **优先处理预警**：若“岁运高危预警系统”有输出，必须置顶解析，并给出极其务实的避险建议。
+2. **深挖逆行**：若水、金、火、木、土星出现逆行，请重点解析其能量内敛或滞后的宿命感。
+3. **日月核心**：剖析外在性格(日)、内在灵魂(月)与生命动机(升)的联动张力。${sunSignData.isCusp ? `\n4. **边界星座**：由于太阳处于星座交界处(${sunSignData.cuspDetail})，请重点解析其双重性格特质。` : ''}
 
 #### 生辰八字 (${unk?'六字' : '八字'})
 | 四柱 | 年柱 | 月柱 | 日柱 | 时柱 |
@@ -221,18 +263,12 @@ function updateDisplay() {
 `;
         
         dayuns.slice(1, 9).forEach((dy, i) => {
-            mdText += `| ${i+1} | ${dy.getStartAge()}岁 | ${dy.getStartYear()} | ${dy.getGanZhi()} |
-`;
+            mdText += `| ${i+1} | ${dy.getStartAge()}岁 | ${dy.getStartYear()} | ${dy.getGanZhi()} |\n`;
         });
 
-        mdText += `
-### 🌌 十二宫位分布
-`;
+        mdText += `\n### 🌌 十二宫位分布\n`;
         const pList = BRANCHES.map(b => `- **${b}宫**: ${palaceMap[b]}宫`).join(' | ');
-        mdText += pList + `
-
----
-*报告由问天星算生成，${useSolar?'已应用真太阳时修正':'未应用修正'}*`;
+        mdText += pList + `\n\n---\n*报告由问天星算生成，${useSolar?'已应用真太阳时修正':'未应用修正'}*`;
 
         document.getElementById('mdOutput').value = mdText;
     } catch (e) { console.error(e); }

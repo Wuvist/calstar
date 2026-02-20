@@ -59,12 +59,11 @@ function getExactSunSign(solarObj) {
  * 使用真恒星时 (LST) 与 黄赤交角 (Obliquity)
  */
 function getAscendant(year, month, day, hh, mm, lng, lat) {
-    // 1. 计算儒略日 (JD)
-    const date = new Date(Date.UTC(year, month - 1, day, hh, mm));
+    // 1. 计算儒略日 (JD) - 修正时区误差：假设输入为北京时间 (UTC+8)，需减去 8 小时得到 UTC
+    const date = new Date(Date.UTC(year, month - 1, day, hh, mm) - 8 * 3600000);
     const jd = (date.getTime() / 86400000) + 2440587.5;
     
     // 2. 计算格林威治平恒星时 (GMST)
-    // 采用更精确的 IAU 1982 公式
     const d = jd - 2451545.0;
     const t = d / 36525.0;
     let gmst = 18.697374558 + 24.06570982441908 * d + 0.000024822 * t * t;
@@ -77,12 +76,11 @@ function getAscendant(year, month, day, hh, mm, lng, lat) {
     if (lst < 0) lst += 24;
     
     // 4. 计算上升点 (Ascendant)
-    // 转化为弧度
     const ram = lst * 15 * Math.PI / 180; // 地方恒星时赤经
     const eps = (23.439291 - 0.0130042 * t) * Math.PI / 180; // 黄赤交角
     const phi = lat * Math.PI / 180; // 地理纬度
     
-    // 上升点公式: tan(Asc) = cos(RAM) / (-sin(RAM)*cos(eps) - tan(phi)*sin(eps))
+    // 上升点公式
     let ascRad = Math.atan2(Math.cos(ram), -Math.sin(ram) * Math.cos(eps) - Math.tan(phi) * Math.sin(eps));
     let ascDeg = ascRad * 180 / Math.PI;
     if (ascDeg < 0) ascDeg += 360;
